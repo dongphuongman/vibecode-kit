@@ -19,8 +19,8 @@ Build a visually impressive, shareable achievements section within the existing 
 - [Execution Brief](#15-execution-brief)
 - [Architecture Decisions](#3-architecture-decisions-final)
 - [Component Details](#8-component-details)
-- [Database Schema](#11-database-schema-prisma-style)
-- [API Surface](#12-api-surface-trpc)
+- [Database Schema](#11-database-schema-orm-style)
+- [API Surface](#12-api-surface)
 - [Phased Delivery Plan](#14-phased-delivery-plan)
 - [RFCs](#16-rfcs)
 - [Implementation Checklist](#implementation-checklist)
@@ -145,7 +145,7 @@ User: "Yes, proceed"
 
 Assistant (Detailed Planning):
 - Will add 3 composite indexes to Comment model
-- Files to modify: packages/db/prisma/models/comment.prisma
+- Files to modify: packages/db/schema/models/comment.schema
 - Migration command: pnpm db:migrate dev
 - Expected migration time: <1 minute
 - Ready to implement?
@@ -298,7 +298,7 @@ export const useAchievementsStore = create<AchievementsStore>((set) => ({
 // In data-fetching component (AccountDashboardPage)
 const setProfileMetrics = useAchievementsStore((s) => s.setProfileMetrics);
 const { data } = useQuery(
-  trpc.achievements.getProfileMetrics.queryOptions(),
+  api.achievements.getProfileMetrics.queryOptions(),
   {
     onSuccess: (data) => setProfileMetrics(data)
   }
@@ -452,9 +452,9 @@ User navigates to /[orgSlug]/[accountSlug]
 AccountDashboardPage component renders
           ↓
 Page fires 3 parallel API queries via useQuery hooks:
-  1. trpc.achievements.getProfileMetrics.useQuery()
-  2. trpc.achievements.getNetworkData.useQuery()
-  3. trpc.achievements.getActivityData.useQuery()
+  1. api.achievements.getProfileMetrics.useQuery()
+  2. api.achievements.getNetworkData.useQuery()
+  3. api.achievements.getActivityData.useQuery()
           ↓
 API procedures execute on server:
   - Query ORM for Comment data (filtered by accountId, status=POSTED)
@@ -574,7 +574,7 @@ const setLoading = useAchievementsStore((s) => s.setLoading);
 const setError = useAchievementsStore((s) => s.setError);
 
 const { data, isLoading, error } = useQuery(
-  trpc.achievements.getProfileMetrics.queryOptions(),
+  api.achievements.getProfileMetrics.queryOptions(),
   {
     onSuccess: (data) => setProfileMetrics(data),
     onError: (err) => setError(err.message)
@@ -774,7 +774,7 @@ No infrastructure changes required - deploys with existing Next.js app on hostin
 
 **Existing Models** (No changes required):
 
-```prisma
+```
 model LinkedInAccount {
   id               String   @id @default(uuid())
   profileSlug      String?  @unique
@@ -820,7 +820,7 @@ enum CommentStatus {
 
 **Suggested Indexes** (Add for performance):
 
-```prisma
+```
 model Comment {
   // ... existing fields
 
@@ -1236,8 +1236,8 @@ Not applicable - no WebSocket or real-time updates. Data loads on page visit onl
    - Network grouping (`accountId + status + authorProfileUrl`)
 
 **Stage 2: Index Implementation**
-1. Add indexes to `packages/db/prisma/models/comment.prisma`:
-   ```prisma
+1. Add indexes to `packages/db/schema/models/comment.schema`:
+   ```
    @@index([accountId, status, peakTouchScore])
    @@index([accountId, status, commentedAt])
    @@index([accountId, status, authorProfileUrl])
@@ -1320,7 +1320,7 @@ Not applicable - no WebSocket or real-time updates. Data loads on page visit onl
 - [ ] Empty state handling (accounts with 0 comments)
 
 **API Contracts**:
-See [API Surface](#11-api-surface-trpc) section above for full contracts.
+See [API Surface](#11-api-surface) section above for full contracts.
 
 **What's Functional Now**: Backend API ready to serve achievements data
 
