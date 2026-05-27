@@ -2,7 +2,7 @@
 
 // Crash wrapper
 try {
-  const { isHookEnabled } = require('./lib/ck-config-utils.cjs');
+  const { isHookEnabled } = require('./lib/vc-config-utils.cjs');
   const { createHookTimer, logHookCrash } = require('./lib/hook-logger.cjs');
 
   // Early exit if hook disabled in config

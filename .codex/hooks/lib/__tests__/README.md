@@ -9,7 +9,7 @@ Comprehensive tests for the Codex hook/statusline compatibility layer and suppor
 - `statusline-integration.test.cjs` - End-to-end rendering tests for `statusline.cjs` (30 tests)
 - `statusline-scenarios.test.cjs` - Cross-platform and user workflow scenarios (19 tests)
 - `statusline-suite.cjs` - Aggregate runner for all statusline suites
-- `ck-config-utils.test.cjs` - Existing config utility coverage
+- `vc-config-utils.test.cjs` - Existing config utility coverage
 
 ## Running Tests
 

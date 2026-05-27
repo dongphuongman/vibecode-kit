@@ -14,7 +14,7 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 // Usage cache file path (written by usage-context-awareness.cjs hook)
-const USAGE_CACHE_FILE = path.join(os.tmpdir(), 'ck-usage-limits-cache.json');
+const USAGE_CACHE_FILE = path.join(os.tmpdir(), 'vc-usage-limits-cache.json');
 const RECENT_INJECTION_TTL_MS = 5 * 60 * 1000;
 const PENDING_INJECTION_TTL_MS = 30 * 1000;
 const WARN_THRESHOLD = 70;
@@ -28,7 +28,7 @@ const {
   getGitBranch,
   readSessionState,
   updateSessionState
-} = require('./ck-config-utils.cjs');
+} = require('./vc-config-utils.cjs');
 
 const PROTOCOL_FILENAME_MAP = {
   'development-rules.md': 'implementation-standards.md',
@@ -507,7 +507,7 @@ function buildContextSection(sessionId) {
 
   // RE-ENABLED IF NEEDED IN THE FUTURE
   try {
-    const contextPath = path.join(os.tmpdir(), `ck-context-${sessionId}.json`);
+    const contextPath = path.join(os.tmpdir(), `vc-context-${sessionId}.json`);
     if (!fs.existsSync(contextPath)) return [];
 
     const data = JSON.parse(fs.readFileSync(contextPath, 'utf-8'));

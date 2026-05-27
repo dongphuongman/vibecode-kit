@@ -773,7 +773,7 @@ test('getGitInfo timeout does not cache null result', () => {
   const fakeBinDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fake-git-bin-'));
   const fakeGit = path.join(fakeBinDir, 'git');
   const hash = crypto.createHash('md5').update(tmpDir).digest('hex').slice(0, 8);
-  const cachePath = path.join(os.tmpdir(), `ck-git-cache-${hash}.json`);
+  const cachePath = path.join(os.tmpdir(), `vc-git-cache-${hash}.json`);
   const originalPath = process.env.PATH;
   const originalTimeout = process.env.CK_GIT_TIMEOUT_MS;
 
@@ -809,7 +809,7 @@ test('getGitInfo timeout reuses stale cache when available', () => {
   const fakeBinDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fake-git-bin-'));
   const fakeGit = path.join(fakeBinDir, 'git');
   const hash = crypto.createHash('md5').update(tmpDir).digest('hex').slice(0, 8);
-  const cachePath = path.join(os.tmpdir(), `ck-git-cache-${hash}.json`);
+  const cachePath = path.join(os.tmpdir(), `vc-git-cache-${hash}.json`);
   const originalPath = process.env.PATH;
   const originalTimeout = process.env.CK_GIT_TIMEOUT_MS;
   const staleData = { branch: 'stale', unstaged: 1, staged: 2, ahead: 0, behind: 0 };

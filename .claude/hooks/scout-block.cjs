@@ -36,7 +36,7 @@ try {
     isVenvExecutable,
     isAllowedCommand
   } = require('./lib/scout-checker.cjs');
-  const { isHookEnabled } = require('./lib/ck-config-utils.cjs');
+  const { isHookEnabled } = require('./lib/vc-config-utils.cjs');
 
   // Early exit if hook disabled in config
   if (!isHookEnabled('scout-block')) {

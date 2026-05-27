@@ -1,5 +1,5 @@
 ---
-name: vc-setup
+name: vc:setup
 description: Set up the complete agent harness in any project. Handles everything automatically — clones the kit, installs files safely (merges with existing configs), studies your codebase, populates context, and validates.
 metadata:
   author: vibecode

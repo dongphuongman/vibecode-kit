@@ -312,7 +312,7 @@ describe('context-builder.cjs', () => {
 
   describe('Session-scoped dedup markers', () => {
     const sessionId = `context-builder-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    const sessionStatePath = path.join(os.tmpdir(), `ck-session-${sessionId}.json`);
+    const sessionStatePath = path.join(os.tmpdir(), `vc-session-${sessionId}.json`);
 
     after(() => {
       fs.rmSync(sessionStatePath, { force: true });

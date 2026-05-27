@@ -23,7 +23,7 @@ const { spawn, spawnSync } = require('child_process');
 
 const TEST_ROOT = path.resolve(__dirname, '../../../..');
 const STATUSLINE_PATH = path.resolve(__dirname, '../../..', 'statusline.cjs');
-const USAGE_CACHE_PATH = path.join(os.tmpdir(), `ck-usage-limits-cache-statusline-test-${process.pid}.json`);
+const USAGE_CACHE_PATH = path.join(os.tmpdir(), `vc-usage-limits-cache-statusline-test-${process.pid}.json`);
 
 let passed = 0;
 let failed = 0;
@@ -92,10 +92,10 @@ function scrubAnthropicRuntimeEnv(runtimeEnv, explicitEnv) {
 function runStatuslineSync({ payload, cwd = TEST_ROOT, env = {}, inputRaw = null, timeoutMs = 20000 }) {
   const input = inputRaw == null ? JSON.stringify(payload || {}) : inputRaw;
   const eligibilityCachePath = env.CK_USAGE_ELIGIBILITY_CACHE_PATH
-    || path.join(os.tmpdir(), `ck-usage-eligibility-statusline-test-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}.json`);
+    || path.join(os.tmpdir(), `vc-usage-eligibility-statusline-test-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}.json`);
   const runtimeEnv = {
     ...process.env,
-    CK_USAGE_CACHE_PATH: USAGE_CACHE_PATH,
+    VC_USAGE_CACHE_PATH: USAGE_CACHE_PATH,
     CK_USAGE_ELIGIBILITY_CACHE_PATH: eligibilityCachePath,
     ...env
   };
@@ -124,10 +124,10 @@ function runStatuslineSync({ payload, cwd = TEST_ROOT, env = {}, inputRaw = null
 function runStatuslineWithDelayedChunks({ chunks, delaysMs, cwd = TEST_ROOT, env = {}, timeoutMs = 30000 }) {
   return new Promise((resolve, reject) => {
     const eligibilityCachePath = env.CK_USAGE_ELIGIBILITY_CACHE_PATH
-      || path.join(os.tmpdir(), `ck-usage-eligibility-statusline-test-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}.json`);
+      || path.join(os.tmpdir(), `vc-usage-eligibility-statusline-test-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}.json`);
     const runtimeEnv = {
       ...process.env,
-      CK_USAGE_CACHE_PATH: USAGE_CACHE_PATH,
+      VC_USAGE_CACHE_PATH: USAGE_CACHE_PATH,
       CK_USAGE_ELIGIBILITY_CACHE_PATH: eligibilityCachePath,
       ...env
     };
@@ -219,7 +219,7 @@ function withUsageCache(payload, fn) {
 function withQuotaEligibilityCache(payload, fn) {
   const cachePath = path.join(
     os.tmpdir(),
-    `ck-usage-eligibility-statusline-test-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}.json`
+    `vc-usage-eligibility-statusline-test-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}.json`
   );
 
   try {
@@ -237,7 +237,7 @@ function mkTranscript(lines) {
 }
 
 function writeSessionStateFile(sessionId, state) {
-  const sessionPath = path.join(os.tmpdir(), `ck-session-${sessionId}.json`);
+  const sessionPath = path.join(os.tmpdir(), `vc-session-${sessionId}.json`);
   fs.writeFileSync(sessionPath, JSON.stringify(state, null, 2));
   return sessionPath;
 }

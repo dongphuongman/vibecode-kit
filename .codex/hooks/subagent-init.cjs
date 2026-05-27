@@ -24,7 +24,7 @@ try {
     normalizePath,
     extractTaskListId,
     isHookEnabled
-  } = require('./lib/ck-config-utils.cjs');
+  } = require('./lib/vc-config-utils.cjs');
   const { resolveSkillsVenv } = require('./lib/context-builder.cjs');
   const { createHookTimer, logHookCrash } = require('./lib/hook-logger.cjs');
 
@@ -57,8 +57,8 @@ function buildPlanCliSection(agentType) {
   return [
     ``,
     `## Plan CLI (deterministic updates)`,
-    `\`ck plan check <id>\` = completed | \`ck plan check <id> --start\` = in-progress | \`ck plan uncheck <id>\` = revert`,
-    `Fallback: if \`ck\` unavailable, update the selected plan file directly; never infer a generic \`plan.md\`.`
+    `\`vc plan check <id>\` = completed | \`vc plan check <id> --start\` = in-progress | \`vc plan uncheck <id>\` = revert`,
+    `Fallback: if \`vc\` unavailable, update the selected plan file directly; never infer a generic \`plan.md\`.`
   ];
 }
 

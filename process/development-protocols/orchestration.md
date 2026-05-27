@@ -31,7 +31,7 @@ When creating a new feature folder:
 mkdir -p process/features/{name}/{active,completed,backlog,reports,references}
 ```
 
-Then update both `AGENTS.md` and `.claude/CLAUDE.md` so the current-features list stays in sync.
+Then update both `AGENTS.md` and `CLAUDE.md` so the current-features list stays in sync.
 
 ## Subagent Status Protocol
 
@@ -165,7 +165,7 @@ Rules:
 - Do not auto-archive a plan without a user-visible action.
 - Do automatically recommend the next valid state when it is clear from the selected plan and latest verification.
 - If cleanup/context capture is the only remaining safe action, say that directly instead of ending with a generic summary.
-- If cleanup was skipped and active-plan debt accumulates, recommend `audit-plans` as a maintenance follow-up.
+- If cleanup was skipped and active-plan debt accumulates, recommend `vc-audit-plans` as a maintenance follow-up.
 
 ### Drift Signal Scoring
 

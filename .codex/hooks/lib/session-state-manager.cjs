@@ -12,7 +12,7 @@ const os = require('os');
 const crypto = require('crypto');
 const { execFileSync } = require('child_process');
 const { parseTranscript } = require('./transcript-parser.cjs');
-const { readSessionState, updateSessionState } = require('./ck-config-utils.cjs');
+const { readSessionState, updateSessionState } = require('./vc-config-utils.cjs');
 const { createEmptyActivitySnapshot, sanitizeActivitySnapshot } = require('./statusline-session-cache.cjs');
 
 const MAX_ARCHIVES = 5;

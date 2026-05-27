@@ -1,0 +1,10 @@
+{
+  "canonicalRoutingSurfaces": [
+    "AGENTS.md",
+    "CLAUDE.md"
+  ],
+  "allowlistedSkills": {
+    "add-worktree": "Operational utility intentionally surfaced only on explicit worktree requests instead of default step-0 routing.",
+    "merge-worktree": "Operational utility intentionally surfaced only on explicit worktree merge/cleanup requests instead of default step-0 routing."
+  }
+}

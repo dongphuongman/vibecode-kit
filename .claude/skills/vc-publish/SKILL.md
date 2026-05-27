@@ -1,5 +1,5 @@
 ---
-name: vc-publish
+name: vc:publish
 description: Push agent harness improvements from the current development repo to the remote kit repository. Diffs managed files, shows what changed, bumps version, and pushes.
 metadata:
   author: vibecode

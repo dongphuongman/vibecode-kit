@@ -3,7 +3,7 @@
 
 try {
   const fs = require('fs');
-  const { isHookEnabled } = require('./lib/ck-config-utils.cjs');
+  const { isHookEnabled } = require('./lib/vc-config-utils.cjs');
   const { createHookTimer, logHookCrash } = require('./lib/hook-logger.cjs');
   const { persistState, refreshStatuslineSnapshot } = require('./lib/session-state-manager.cjs');
 

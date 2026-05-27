@@ -26,7 +26,7 @@ try {
     resolveNamingPattern,
     extractTaskListId,
     isHookEnabled
-  } = require('./lib/ck-config-utils.cjs');
+  } = require('./lib/vc-config-utils.cjs');
   const { createHookTimer, logHookCrash } = require('./lib/hook-logger.cjs');
   const { loadState, refreshStatuslineSnapshot } = require('./lib/session-state-manager.cjs');
   const { createEmptyActivitySnapshot } = require('./lib/statusline-session-cache.cjs');

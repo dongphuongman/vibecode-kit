@@ -527,7 +527,7 @@ try {
 console.log('\nTEST 14: Agent/Todo Tracking Display\n');
 
 const sessionId = `statusline-agent-${Date.now()}`;
-const tmpSessionPath = path.join(os.tmpdir(), `ck-session-${sessionId}.json`);
+const tmpSessionPath = path.join(os.tmpdir(), `vc-session-${sessionId}.json`);
 fs.writeFileSync(tmpSessionPath, JSON.stringify({
   statusline: {
     sessionStart: new Date(Date.now() - 120000).toISOString(),

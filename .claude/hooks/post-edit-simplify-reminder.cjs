@@ -17,7 +17,7 @@ try {
   const fs = require('fs');
   const path = require('path');
   const os = require('os');
-  const { isHookEnabled } = require('./lib/ck-config-utils.cjs');
+  const { isHookEnabled } = require('./lib/vc-config-utils.cjs');
   const { invalidateCache } = require('./lib/git-info-cache.cjs');
   const { createHookTimer, logHookCrash } = require('./lib/hook-logger.cjs');
 
@@ -27,7 +27,7 @@ try {
   }
 
 // Session tracking file
-const SESSION_TRACK_FILE = path.join(os.tmpdir(), 'ck-simplify-session.json');
+const SESSION_TRACK_FILE = path.join(os.tmpdir(), 'vc-simplify-session.json');
 const EDIT_THRESHOLD = 5; // Remind after this many edits
 
 /**
