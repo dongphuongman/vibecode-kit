@@ -126,7 +126,7 @@ For multi-phase execution workflow, see [process/development-protocols/phase-pro
 
 **Constraints**:
 - Must use existing Prisma schema (`Comment`, `LinkedInAccount`, `User`)
-- Must follow neobrutalist theme from `@sassy/ui`
+- Must follow neobrutalist theme from `@your-org/ui`
 - Mobile viewport minimum: 375px width
 - Browser support: Last 2 versions of Chrome, Firefox, Safari, Edge
 - Accessibility: WCAG 2.1 AA compliance
@@ -1862,7 +1862,7 @@ See [API Surface](#11-api-surface-trpc) section above for full contracts.
 
 - Consider migrating Context to Zustand if state management becomes complex
 - Optimize percentile calculation (cache globally, regenerate hourly)
-- Extract heat map component to `@sassy/ui` for reusability
+- Extract heat map component to `@your-org/ui` for reusability
 - Add E2E tests for all user flows
 - Implement lazy loading for treemap images
 
