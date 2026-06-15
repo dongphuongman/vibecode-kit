@@ -365,6 +365,26 @@ function applyPlan(plan, projectRoot, kitRoot, ownedPaths, version, managedFiles
   const versionPath = path.join(projectRoot, '.vc-version');
   fs.writeFileSync(versionPath, version + '\n', 'utf8');
   console.log(`  version written: .vc-version (${version})`);
+
+  // 8. Ensure .gitignore excludes .vibecode-backup*/ (additive — never overwrites user content)
+  try {
+    const gitignorePath = path.join(projectRoot, '.gitignore');
+    const backupPattern = '.vibecode-backup*/';
+    if (!fs.existsSync(gitignorePath)) {
+      fs.writeFileSync(gitignorePath, backupPattern + '\n', 'utf8');
+      console.log(`  Added ${backupPattern} to .gitignore (created)`);
+    } else {
+      const existing = fs.readFileSync(gitignorePath, 'utf8');
+      const alreadyPresent = existing.split('\n').some(line => line.trim().includes('.vibecode-backup'));
+      if (!alreadyPresent) {
+        const withNewline = existing.endsWith('\n') ? existing : existing + '\n';
+        fs.writeFileSync(gitignorePath, withNewline + backupPattern + '\n', 'utf8');
+        console.log(`  Added ${backupPattern} to .gitignore`);
+      }
+    }
+  } catch (err) {
+    process.stderr.write(`  Warning: could not update .gitignore: ${err.message}\n`);
+  }
 }
 
 // ── CLI ────────────────────────────────────────────────────────────────────────

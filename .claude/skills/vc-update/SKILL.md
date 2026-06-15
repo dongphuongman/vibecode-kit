@@ -234,6 +234,7 @@ node "$VC_UPDATE_TMPDIR/compute-sync-plan.mjs" \
 - **Empty-parent sweep**: after all deletions, every ancestor directory of every deleted path is walked deepest-first and `rmdirSync`'d if empty. This is the guaranteed cleanup that prevents hollow deprecated skill dirs (e.g. empty `references/`, `scripts/` subdirs) from surviving after a skill is removed.
 - **Snapshot**: writes `.vc-installed-files` (sorted `managedFiles` — the `files` list from resolve-manifest; `legacyDeletions` are re-derived each run and not persisted).
 - **Version**: writes `.vc-version` (manifest version string).
+- **`.gitignore` guard**: after writing the version, apply ensures the project-root `.gitignore` contains `.vibecode-backup*/` (additive — creates the file if absent, appends if the pattern is missing, no-ops if already present). This prevents backup dirs from being accidentally committed.
 - **staleWarnings (Type 1 — non-vc- namespace)**: paths in the prior snapshot that are not in the vc- namespace — moved to `toPreserve`, never deleted. Message form: `'X' in prior snapshot but not in kit namespace — preserved (verify manually)`.
 - **staleWarnings (Type 2 — vc- namespace, `WARNING:` prefix)**: vc- namespace paths that are in `toDelete` but not in the known `ownedPaths`/`legacyDeletions` — these ARE deleted. The warning is advisory: if the user has a custom vc- skill at that path, rename it before updating.
 

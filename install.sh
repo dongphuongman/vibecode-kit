@@ -352,6 +352,20 @@ fi
 echo "$FILES" | sort > .vc-installed-files
 echo "$VERSION" > .vc-version
 
+# Ensure .gitignore excludes .vibecode-backup*/ (additive — never overwrites user content)
+BACKUP_PATTERN=".vibecode-backup*/"
+if [ ! -f ".gitignore" ]; then
+  echo "$BACKUP_PATTERN" > .gitignore
+  echo "  Added $BACKUP_PATTERN to .gitignore (created)"
+elif ! grep -q '\.vibecode-backup' .gitignore 2>/dev/null; then
+  # Ensure trailing newline before appending
+  if [ -s ".gitignore" ] && [ "$(tail -c1 .gitignore | wc -c)" -gt 0 ] && [ "$(tail -c1 .gitignore | od -An -tx1 | tr -d ' ')" != "0a" ]; then
+    echo "" >> .gitignore
+  fi
+  echo "$BACKUP_PATTERN" >> .gitignore
+  echo "  Added $BACKUP_PATTERN to .gitignore"
+fi
+
 cleanup
 
 # ══════════════════════════════════════════════════════
