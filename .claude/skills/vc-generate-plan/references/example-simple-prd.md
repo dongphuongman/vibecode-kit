@@ -8,8 +8,8 @@ metadata:
 ---
 # MyApp Neobrutalist Redesign - Plan
 
-**Date:** 26-11-25  
-**Complexity:** Simple  
+**Date:** 26-11-25
+**Complexity:** Simple
 **Status:** ⏳ PLANNED
 
 ## Overview

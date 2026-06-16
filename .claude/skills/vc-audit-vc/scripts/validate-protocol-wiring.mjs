@@ -58,9 +58,12 @@ if (fs.existsSync(agentsDir)) {
     const text = read(agentFile);
     checkedAgents.push(entry.name);
 
+    // Strip HTML comments before scanning for protocol references
+    const body = text.replace(/<!--[\s\S]*?-->/g, "");
+
     // Find all process/development-protocols/ references in agent body
     // Updated regex supports subdir paths like vc-system-behavior/06-innovate.md
-    const refs = [...text.matchAll(/process\/development-protocols\/((?:[a-z0-9_-]+\/)*[a-z0-9_-]+\.md)/g)];
+    const refs = [...body.matchAll(/process\/development-protocols\/((?:[a-z0-9_-]+\/)*[a-z0-9_-]+\.md)/g)];
     for (const ref of refs) {
       const referencedFile = ref[1];
       const fullRef = `${protocolDir}/${referencedFile}`;

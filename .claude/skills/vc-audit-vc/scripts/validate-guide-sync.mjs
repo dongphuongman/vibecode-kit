@@ -56,9 +56,21 @@ if (!exists(guidePath)) {
 } else {
   const guideText = read(guidePath);
 
+  // --- Bare-user-project mode detection ---
+  // Kit catalog README.md contains a heading like "### 33 Skills" or "### N Agents".
+  // User projects that don't have the kit catalog README should skip agent/skill table checks.
+  const hasSkillCatalogHeader = /###\s+\d+\s+Skills\b/.test(guideText);
+  const hasAgentCatalogHeader = /#{2,3}\s+\d*\s*Agents\b/.test(guideText);
+  const isKitCatalog = hasSkillCatalogHeader || hasAgentCatalogHeader;
+
+  if (!isKitCatalog) {
+    console.log("[bare-user-project mode] README.md is not the kit catalog — skipping agent/skill table checks");
+  } else {
   // Extract agents from README.md tables (Core + Specialists sections)
   const agentsSectionMatch = guideText.match(/#{2,3} \d* ?Agents\b[\s\S]*?(?=\n#{2,3} [^#]|\n---)/);
-  const agentsSection = agentsSectionMatch ? agentsSectionMatch[0] : "";
+  const rawAgentsSection = agentsSectionMatch ? agentsSectionMatch[0] : "";
+  // Strip HTML comments before extracting backtick names
+  const agentsSection = rawAgentsSection.replace(/<!--[\s\S]*?-->/g, "");
   const guideAgents = extractTableAgents(agentsSection);
 
   // Get disk agents
@@ -82,7 +94,9 @@ if (!exists(guidePath)) {
 
   // Extract skills from all README.md skill catalog section (skills listed inline, not as tables)
   const skillsSectionMatch = guideText.match(/#{2,3} \d+ Skills\b[\s\S]*?(?=\n#{2,3} [^#]|\n---\n\n#{2,3} )/);
-  const skillsSection = skillsSectionMatch ? skillsSectionMatch[0] : "";
+  const rawSkillsSection = skillsSectionMatch ? skillsSectionMatch[0] : "";
+  // Strip HTML comments before extracting backtick names
+  const skillsSection = rawSkillsSection.replace(/<!--[\s\S]*?-->/g, "");
   const guideSkills = extractInlineBackticks(skillsSection);
 
   // Get disk skills that have a SKILL.md
@@ -123,6 +137,7 @@ if (!exists(guidePath)) {
       warn(`Skill ${skill} listed in README.md but not found on disk`);
     }
   }
+  } // end isKitCatalog
 }
 
 const result = {
