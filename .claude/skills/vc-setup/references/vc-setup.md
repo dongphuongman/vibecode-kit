@@ -12,6 +12,7 @@ After running DETECT, classify the project before choosing a flow:
 | `process/` exists but contains ONLY kit-installed files (`_seeds/`, `development-protocols/`, `context/generated-skills-catalog.json`) and no user content (`all-context.md` absent, `general-plans/` absent, `features/` absent or empty) | **New project** -- use Flow A (install.sh ran but vc-setup has not yet run; this is a fresh install) |
 | Has `process/` directory with user content (e.g. `all-context.md`, `general-plans/` with plans, `features/` with entries) | **Existing project** -- use Flow B |
 | Has `all-context.md` with real (non-placeholder) content | **Existing project** -- use Flow B |
+| Has `all-context.md` but its non-comment body is entirely placeholder/stub (e.g. contains `<!-- STUDY:` markers throughout, all sections say "pending", no real stack or routing content) | **New project** -- use Flow A (SCAFFOLD ran but STUDY was interrupted; treat as fresh and continue from STUDY) |
 | Has CLAUDE.md with project-specific sections (beyond managed protocol) | **Existing project** -- use Flow B |
 | Has `.vibecode-backup/` (just ran install.sh over an existing setup) | **Existing project** -- use Flow B |
 
@@ -182,15 +183,17 @@ The combination of existing context + fresh user input produces the best results
 
 ## DETECT Phase
 
+> **Non-JS projects:** If the manifest detected is NOT `package.json` (i.e. the project is Python, Go, Ruby, or Rust), skip the Package Manager Detection, Framework Detection, and Test Setup Detection subsections below — those read `package.json` and are JS-only. Use the runtime-specific heuristics in each manifest entry instead. Derive the project name from the runtime manifest (`module` line in `go.mod`, `name` field in `Cargo.toml` or `pyproject.toml`, directory name for Ruby/Gemfile projects) rather than `package.json`.
+
 ### Project Manifest Detection
 
 Before reading `package.json`, check which project manifest is present. Use this fallback chain:
 
 1. `package.json` → Node/Bun/Deno project (JS/TS); proceed with full JS detection below.
 2. `pyproject.toml` or `requirements.txt` → Python project; adapt detection heuristics (skip package manager / framework checks, detect test runner from `pytest`/`unittest`, detect ORM from `sqlalchemy`/`django`).
-3. `go.mod` → Go project; detect module name, infer test runner (`go test`).
-4. `Gemfile` → Ruby project; detect framework (`rails`/`sinatra`), test runner (`rspec`/`minitest`).
-5. `Cargo.toml` → Rust project; detect workspace members, test runner (`cargo test`).
+3. `go.mod` → Go project; detect module name from `module` directive, infer test runner (`go test`); skip Package Manager / Framework / Test Setup subsections below.
+4. `Gemfile` → Ruby project; detect framework (`rails`/`sinatra`), test runner (`rspec`/`minitest`); skip Package Manager / Framework / Test Setup subsections below.
+5. `Cargo.toml` → Rust project; detect workspace members, test runner (`cargo test`); skip Package Manager / Framework / Test Setup subsections below.
 6. None found → Ask the user: "I couldn't find a project manifest (package.json, pyproject.toml, go.mod, Gemfile, Cargo.toml). What language/runtime does this project use? I'll adapt the setup to match."
 
 ### Package Manager Detection

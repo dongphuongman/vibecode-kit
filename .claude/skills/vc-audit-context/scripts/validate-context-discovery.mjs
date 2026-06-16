@@ -297,7 +297,9 @@ if (!bareKitMode) {
 
   for (const file of filesWithRefs) {
     if (!exists(file)) continue;
-    const text = read(file);
+    // Strip HTML comments (including multi-line) before scanning for backtick refs.
+    // Commented-out example content is not live routing and must not trigger path checks.
+    const text = read(file).replace(/<!--[\s\S]*?-->/g, "");
     for (const match of text.matchAll(/`(process\/context\/[^`\s]+)`/g)) {
       const ref = match[1].replace(/[.,;:]$/, "");
       if (/[{}[*\]]/.test(ref)) continue;

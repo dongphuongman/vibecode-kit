@@ -249,7 +249,7 @@ Verify the setup is complete, correct, and populated with real content.
 
    **Validator cwd discipline:** Run every validator from the project root: `cd {project_root} && node .claude/skills/...`. The scripts resolve the project via `git rev-parse --show-toplevel`; running from a parent directory resolves the wrong root and produces misleading results.
 
-   **Expected validator warnings on fresh projects:** `validate-context-discovery.mjs` may report missing context group directories such as `process/context/uxui/` or other groups. This is EXPECTED for projects that do not have content in those domains — do not create empty group directories just to silence the warning. Create a context group only when the project genuinely has substantial content for that domain (see Context Group Detection Table in the STUDY phase).
+   **Expected validator warnings on fresh projects:** `validate-context-discovery.mjs` may report missing context group directories such as process/context/uxui/ (if project has UI/UX context group) or other groups. This is EXPECTED for projects that do not have content in those domains — do not create empty group directories just to silence the warning. Create a context group only when the project genuinely has substantial content for that domain (see Context Group Detection Table in the STUDY phase).
 
 **Present the final summary** to the user: what was set up, what is ready to use, and recommended next steps (review context, start using the harness).
 

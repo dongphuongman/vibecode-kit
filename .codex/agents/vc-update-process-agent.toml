@@ -373,7 +373,7 @@ Note: Context paths follow the grouped architecture — always read the `all-{gr
 | `process/context/all-context.md` | Root context entrypoint, architecture, API surface, conventions, env vars, monorepo layout |
 | `process/context/tests/all-tests.md` | Testing quick-start, runner selection, commands, debugging procedures, and routing |
 | `process/context/tests/` | Grouped test docs, including browser automation helpers and historical live-round references |
-| `process/context/uxui/` | UI/UX grouped router plus deep design-system references |
+| process/context/uxui/ (if project has UI/UX context group) | UI/UX grouped router plus deep design-system references |
 | process/context/{group}/ (per-domain grouped routers, if the project uses context groups) | Each grouped router plus its deep-reference files |
 | `process/context/planning/` | Planning grouped router plus SIMPLE vs COMPLEX reference docs |
 | `.claude/skills/vc-generate-plan/references/example-simple-prd.md` | Reference template for simple plan structure |
