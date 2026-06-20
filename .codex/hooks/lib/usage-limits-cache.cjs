@@ -4,11 +4,10 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { execSync } = require('child_process');
 
 const DEFAULT_CACHE_TTL_MS = 60_000;
 const DEFAULT_FETCH_TIMEOUT_MS = 5_000;
-const DEFAULT_USER_AGENT = 'claudekit-engineer/1.0';
+const DEFAULT_USER_AGENT = 'vc-codex-hooks/1.0';
 const DEFAULT_ELIGIBILITY_CACHE_TTL_MS = 60_000;
 
 function getUsageCachePath() {
@@ -105,30 +104,18 @@ function writeQuotaEligibilityCache(result, { cachePath = getQuotaEligibilityCac
   }
 }
 
-function hasAnthropicRuntimeOverride(envObj = process.env) {
-  return ['ANTHROPIC_BASE_URL', 'ANTHROPIC_AUTH_TOKEN', 'ANTHROPIC_API_KEY']
+function hasProviderRuntimeOverride(envObj = process.env) {
+  return ['OPENAI_API_KEY', 'CODEX_ACCESS_TOKEN', 'OPENAI_BASE_URL']
     .some((key) => typeof envObj?.[key] === 'string' && envObj[key].trim() !== '');
 }
 
-function readClaudeCredentials({
-  platform = os.platform(),
+function readCodexCredentials({
   homedir = os.homedir(),
-  execSyncImpl = execSync
+  envObj = process.env
 } = {}) {
-  if (platform === 'darwin') {
-    try {
-      const raw = execSyncImpl('security find-generic-password -s "Claude Code-credentials" -w', {
-        timeout: 5_000,
-        encoding: 'utf8',
-        stdio: ['pipe', 'pipe', 'ignore']
-      }).trim();
-      const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === 'object') return parsed;
-    } catch {}
-  }
-
   try {
-    const credentialsPath = path.join(homedir, '.claude', '.credentials.json');
+    const codexHome = envObj.CODEX_HOME || path.join(homedir, '.codex');
+    const credentialsPath = path.join(codexHome, 'auth.json');
     const parsed = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
     return parsed && typeof parsed === 'object' ? parsed : null;
   } catch {
@@ -136,21 +123,20 @@ function readClaudeCredentials({
   }
 }
 
-function getClaudeAccessTokenFromCredentials(credentials) {
-  return credentials?.claudeAiOauth?.accessToken || null;
+function getCodexAccessTokenFromCredentials(credentials) {
+  return credentials?.tokens?.access_token
+    || credentials?.accessToken
+    || credentials?.access_token
+    || null;
 }
 
-function hasSupportedClaudeSubscription(credentials) {
-  const subscriptionType = String(credentials?.claudeAiOauth?.subscriptionType || '').trim().toLowerCase();
-  if (subscriptionType && subscriptionType !== 'free' && subscriptionType !== 'none') return true;
-
-  const rateLimitTier = String(credentials?.claudeAiOauth?.rateLimitTier || '').trim().toLowerCase();
-  return /claude|max|pro|team|enterprise/.test(rateLimitTier);
+function hasSupportedCodexSubscription(credentials) {
+  return Boolean(getCodexAccessTokenFromCredentials(credentials));
 }
 
 function resolveQuotaDisplayEligibility(options = {}) {
-  if (hasAnthropicRuntimeOverride(options.env)) {
-    return { eligible: false, note: 'runtime-override', accessToken: null };
+  if (hasProviderRuntimeOverride(options.env)) {
+    return { eligible: false, note: 'provider-override', accessToken: null };
   }
 
   const explicitAccessToken = typeof options.accessToken === 'string' && options.accessToken.trim() !== '';
@@ -163,21 +149,19 @@ function resolveQuotaDisplayEligibility(options = {}) {
     }
   }
 
-  const credentials = explicitCredentials ? options.credentials : readClaudeCredentials(options);
+  const credentials = explicitCredentials ? options.credentials : readCodexCredentials(options);
 
   let result;
   if (explicitAccessToken) {
-    result = credentials && !hasSupportedClaudeSubscription(credentials)
-      ? { eligible: false, note: 'non-subscription-auth', accessToken: null }
-      : { eligible: true, note: 'eligible', accessToken: options.accessToken.trim() };
+    result = { eligible: false, note: 'codex-usage-api-unavailable', accessToken: null };
   } else {
-    const accessToken = getClaudeAccessTokenFromCredentials(credentials);
+    const accessToken = getCodexAccessTokenFromCredentials(credentials);
     if (!accessToken) {
       result = { eligible: false, note: 'missing-credentials', accessToken: null };
-    } else if (!hasSupportedClaudeSubscription(credentials)) {
+    } else if (!hasSupportedCodexSubscription(credentials)) {
       result = { eligible: false, note: 'non-subscription-auth', accessToken: null };
     } else {
-      result = { eligible: true, note: 'eligible', accessToken };
+      result = { eligible: false, note: 'codex-usage-api-unavailable', accessToken: null };
     }
   }
 
@@ -191,62 +175,17 @@ function resolveQuotaDisplayEligibility(options = {}) {
   return result;
 }
 
-function getClaudeAccessToken(options = {}) {
+function getCodexAccessToken(options = {}) {
   return resolveQuotaDisplayEligibility(options).accessToken;
 }
 
 async function fetchUsageLimits(options = {}) {
-  const {
-  fetchImpl = fetch,
-  fetchTimeoutMs = DEFAULT_FETCH_TIMEOUT_MS,
-  userAgent = DEFAULT_USER_AGENT,
-  accessToken
-  } = options;
-  const eligibility = resolveQuotaDisplayEligibility({ ...options, accessToken });
-  const token = eligibility.accessToken;
-  if (!eligibility.eligible || !token) {
-    return {
-      ok: false,
-      cacheStatus: 'unavailable',
-      note: eligibility.note || 'missing-credentials',
-      data: null
-    };
-  }
-
-  const controller = typeof AbortController === 'function' ? new AbortController() : null;
-  const timeoutId = controller
-    ? setTimeout(() => controller.abort(), fetchTimeoutMs)
-    : null;
-
-  try {
-    const response = await fetchImpl('https://api.anthropic.com/api/oauth/usage', {
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-        'anthropic-beta': 'oauth-2025-04-20',
-        'User-Agent': userAgent
-      },
-      signal: controller?.signal
-    });
-
-    if (!response.ok) {
-      return { ok: false, cacheStatus: 'unavailable', note: `http-${response.status}`, data: null };
-    }
-
-    const data = await response.json();
-    if (!data || typeof data !== 'object') {
-      return { ok: false, cacheStatus: 'unavailable', note: 'invalid-body', data: null };
-    }
-
-    return { ok: true, cacheStatus: 'available', note: 'fetched', data };
-  } catch (error) {
-    const note = error?.name === 'AbortError' ? 'timeout' : 'fetch-failed';
-    return { ok: false, cacheStatus: 'unavailable', note, data: null };
-  } finally {
-    if (timeoutId) clearTimeout(timeoutId);
-  }
+  return {
+    ok: false,
+    cacheStatus: 'unavailable',
+    note: 'codex-usage-api-unavailable',
+    data: null
+  };
 }
 
 async function refreshUsageCache(options = {}) {
@@ -272,11 +211,11 @@ module.exports = {
   buildUsageSnapshot,
   writeUsageCache,
   writeQuotaEligibilityCache,
-  hasAnthropicRuntimeOverride,
-  readClaudeCredentials,
-  hasSupportedClaudeSubscription,
+  hasProviderRuntimeOverride,
+  readCodexCredentials,
+  hasSupportedCodexSubscription,
   resolveQuotaDisplayEligibility,
-  getClaudeAccessToken,
+  getCodexAccessToken,
   fetchUsageLimits,
   refreshUsageCache,
   normalizeUtilization

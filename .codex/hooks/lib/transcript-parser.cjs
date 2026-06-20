@@ -24,6 +24,10 @@ function normalizeTodo(todo) {
   return normalized;
 }
 
+function isAgentSpawnToolName(name) {
+  return name === 'Task' || name === 'spawn_agent' || name === 'multi_agent_v1.spawn_agent';
+}
+
 function extractTaskIdFromString(text) {
   if (!text || typeof text !== 'string') return null;
   const trimmed = text.trim();
@@ -154,13 +158,13 @@ function processEntry(entry, toolMap, agentMap, latestTodos, result) {
   for (const block of content) {
     // Handle tool_use blocks
     if (block.type === 'tool_use' && block.id && block.name) {
-      if (block.name === 'Task') {
+      if (isAgentSpawnToolName(block.name)) {
         result.statuslineActivityCount += 1;
         hadActivity = true;
         // Agent spawn
         agentMap.set(block.id, {
           id: block.id,
-          type: block.input?.subagent_type ?? 'unknown',
+          type: block.input?.agent_type ?? block.input?.subagent_type ?? 'unknown',
           model: block.input?.model ?? null,
           description: block.input?.description ?? null,
           status: 'running',
@@ -183,7 +187,7 @@ function processEntry(entry, toolMap, agentMap, latestTodos, result) {
       } else if (block.name === 'TaskCreate') {
         result.statuslineActivityCount += 1;
         hadActivity = true;
-        // Native Task API: add new task.
+        // Native task API: add new task.
         // Track by tool_use id first; hydrate real task id from matching tool_result when present.
         if (block.input?.subject) {
           latestTodos.push({
@@ -198,7 +202,7 @@ function processEntry(entry, toolMap, agentMap, latestTodos, result) {
       } else if (block.name === 'TaskUpdate') {
         result.statuslineActivityCount += 1;
         hadActivity = true;
-        // Native Task API: Update existing task status
+        // Native task API: update existing task status.
         // Match by taskId against native-task ids first.
         // Numeric fallback maps to native-task creation order only (not legacy TodoWrite items).
         if (block.input?.taskId && block.input?.status) {
@@ -276,6 +280,7 @@ function extractTarget(toolName, input) {
     case 'Read':
     case 'Write':
     case 'Edit':
+    case 'apply_patch':
       return input.file_path ?? input.path ?? null;
 
     case 'Glob':

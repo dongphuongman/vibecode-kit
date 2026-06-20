@@ -2,48 +2,48 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Write",
+        "matcher": "apply_patch|Edit|Write",
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/.codex/hooks/descriptive-name.cjs\""
+            "command": "ROOT=\"$(git rev-parse --show-toplevel 2>/dev/null || pwd)\"; sh \"$ROOT/.codex/hooks/run-node.sh\" \"$ROOT/.codex/hooks/descriptive-name.cjs\""
           }
         ]
       },
       {
-        "matcher": "Bash|Glob|Grep|Read|Edit|Write",
+        "matcher": "Bash|apply_patch|Edit|Write|mcp__filesystem__.*",
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/.codex/hooks/scout-block.cjs\""
+            "command": "ROOT=\"$(git rev-parse --show-toplevel 2>/dev/null || pwd)\"; sh \"$ROOT/.codex/hooks/run-node.sh\" \"$ROOT/.codex/hooks/scout-block.cjs\""
           },
           {
             "type": "command",
-            "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/.codex/hooks/privacy-block.cjs\""
+            "command": "ROOT=\"$(git rev-parse --show-toplevel 2>/dev/null || pwd)\"; sh \"$ROOT/.codex/hooks/run-node.sh\" \"$ROOT/.codex/hooks/privacy-block.cjs\""
           }
         ]
       }
     ],
     "PostToolUse": [
       {
-        "matcher": "Edit|Write|MultiEdit",
+        "matcher": "apply_patch|Edit|Write",
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/.codex/hooks/session-state.cjs\""
+            "command": "ROOT=\"$(git rev-parse --show-toplevel 2>/dev/null || pwd)\"; sh \"$ROOT/.codex/hooks/run-node.sh\" \"$ROOT/.codex/hooks/session-state.cjs\""
           },
           {
             "type": "command",
-            "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/.codex/hooks/post-edit-simplify-reminder.cjs\""
+            "command": "ROOT=\"$(git rev-parse --show-toplevel 2>/dev/null || pwd)\"; sh \"$ROOT/.codex/hooks/run-node.sh\" \"$ROOT/.codex/hooks/post-edit-simplify-reminder.cjs\""
           }
         ]
       },
       {
-        "matcher": "Write",
+        "matcher": "apply_patch|Edit|Write",
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/.codex/hooks/post-write-plan-check.mjs\""
+            "command": "ROOT=\"$(git rev-parse --show-toplevel 2>/dev/null || pwd)\"; sh \"$ROOT/.codex/hooks/run-node.sh\" \"$ROOT/.codex/hooks/post-write-plan-check.mjs\""
           }
         ]
       },
@@ -52,7 +52,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/.codex/hooks/post-commit-lint.mjs\""
+            "command": "ROOT=\"$(git rev-parse --show-toplevel 2>/dev/null || pwd)\"; sh \"$ROOT/.codex/hooks/run-node.sh\" \"$ROOT/.codex/hooks/post-commit-lint.mjs\""
           }
         ]
       }
@@ -62,7 +62,22 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/.codex/hooks/stop-validator-sweep.cjs\""
+            "command": "ROOT=\"$(git rev-parse --show-toplevel 2>/dev/null || pwd)\"; sh \"$ROOT/.codex/hooks/run-node.sh\" \"$ROOT/.codex/hooks/session-state.cjs\""
+          },
+          {
+            "type": "command",
+            "command": "ROOT=\"$(git rev-parse --show-toplevel 2>/dev/null || pwd)\"; sh \"$ROOT/.codex/hooks/run-node.sh\" \"$ROOT/.codex/hooks/stop-validator-sweep.cjs\""
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "ROOT=\"$(git rev-parse --show-toplevel 2>/dev/null || pwd)\"; sh \"$ROOT/.codex/hooks/run-node.sh\" \"$ROOT/.codex/hooks/session-state.cjs\""
           }
         ]
       }
@@ -72,7 +87,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/.codex/hooks/session-init.cjs\""
+            "command": "ROOT=\"$(git rev-parse --show-toplevel 2>/dev/null || pwd)\"; sh \"$ROOT/.codex/hooks/run-node.sh\" \"$ROOT/.codex/hooks/session-init.cjs\""
           }
         ]
       }
@@ -83,7 +98,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/.codex/hooks/subagent-init.cjs\""
+            "command": "ROOT=\"$(git rev-parse --show-toplevel 2>/dev/null || pwd)\"; sh \"$ROOT/.codex/hooks/run-node.sh\" \"$ROOT/.codex/hooks/subagent-init.cjs\""
           }
         ]
       }

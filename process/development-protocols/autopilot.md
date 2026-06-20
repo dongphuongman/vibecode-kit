@@ -241,7 +241,7 @@ When VALIDATE V7 completes during an autopilot run, the orchestrator emits the `
   - `SESSION GOAL:` is prefixed with `(UPDATE) `
   - `TEST GATES:` is replaced with the real gate commands from the new validate-contract
   - `START:` reflects the post-VALIDATE state
-- The `(UPDATE)` variant is also written to disk at the same path as the provisional block (overwrite).
+- The `(UPDATE)` variant is written to disk as a new `## (UPDATE) [YYYY-MM-DD]` section APPENDED to the goal block file (never overwritten). The original provisional block remains on disk for resume history.
 - The provisional block in chat history is NOT edited (chat is immutable); the `(UPDATE)` variant is a new chat message.
 
 ---
@@ -250,9 +250,10 @@ When VALIDATE V7 completes during an autopilot run, the orchestrator emits the `
 
 When autopilot is triggered for work that has 3+ phases (a phase program):
 
-- The provisional goal block bridges until the umbrella plan's `## Stable Program Goal` exists.
-- After the umbrella plan is written (PLAN step of the RIPER-5 outer loop), the `## Stable Program Goal` block supersedes the provisional block.
-- The provisional block remains valid for session resume until the umbrella plan is confirmed on disk.
+- The provisional goal block file (`{slug}_AUTOPILOT_GOAL_{dd-mm-yy}.md`) is written to disk at session start, same as single-phase runs. This file remains the durable resume artifact.
+- After the umbrella plan is written (outer PLAN step), the `## Stable Program Goal` section is ALSO written to the umbrella plan file. This section is the in-band goal reference for orchestrator routing during inner phases.
+- Both artifacts coexist. The provisional goal file is the resume/session artifact; the umbrella `## Stable Program Goal` is the program-level charter reference. They are NOT alternatives — both are required for a valid phase program.
+- After each inner phase completes, vc-update-process-agent updates the umbrella plan's `## Current Execution State` (Section 6 format: 8 fields covering phase N status, EVL status, phase report path, next phase). The provisional goal file is NOT re-written per-phase — it is a snapshot from session start.
 - Under a running phase program, the [AUTOPILOT CONTEXT] injection prepend is used for every inner-loop subagent spawn (same as single-phase runs).
 
 ---

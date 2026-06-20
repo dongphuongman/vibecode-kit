@@ -108,36 +108,6 @@ function cleanupOrphanedShadowedSkills() {
   }
 }
 
-/**
- * Detect if this session is running inside an Agent Team.
- * Scans ~/.claude/teams/ for active team configs and checks membership.
- * Note: Returns first team found — Claude Code supports one team per session.
- * Note: Team lifecycle (creation/cleanup) is managed by Claude Code, not this hook.
- * @returns {{ teamName: string, memberCount: number } | null}
- */
-function detectAgentTeam() {
-  try {
-    const teamsDir = path.join(os.homedir(), '.claude', 'teams');
-    if (!fs.existsSync(teamsDir)) return null;
-
-    const teams = fs.readdirSync(teamsDir, { withFileTypes: true });
-    for (const entry of teams) {
-      if (!entry.isDirectory()) continue;
-      const configPath = path.join(teamsDir, entry.name, 'config.json');
-      if (!fs.existsSync(configPath)) continue;
-      try {
-        const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-        if (config.members && config.members.length > 0) {
-          return { teamName: entry.name, memberCount: config.members.length };
-        }
-      } catch { /* skip malformed configs */ }
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
-
 function shouldWarmStatuslineCache(source, snapshot) {
   if (!['startup', 'resume', 'compact'].includes(source)) return false;
   return !snapshot || snapshot.warmed !== true;
@@ -152,7 +122,7 @@ async function main() {
     const shadowedCleanup = cleanupOrphanedShadowedSkills();
     const stdin = fs.readFileSync(0, 'utf-8').trim();
     const data = stdin ? JSON.parse(stdin) : {};
-    const envFile = process.env.CLAUDE_ENV_FILE;
+    const envFile = process.env.CODEX_ENV_FILE || process.env.CLAUDE_ENV_FILE;
     const source = data.source || 'unknown';
     const sessionId = data.session_id || null;
     const existingSession = sessionId ? readSessionState(sessionId) : null;
@@ -188,7 +158,7 @@ async function main() {
     // Reports path only uses active plans, not suggested ones
     const reportsPath = getReportsPath(resolved.path, resolved.resolvedBy, config.plan, config.paths);
 
-    // Extract task list ID for Claude Code Tasks coordination (shared helper)
+    // Extract shared task-list context for multi-session/subagent coordination
     const taskListId = extractTaskListId(resolved);
 
     // Keep startup metadata cheap. Expensive enrichment is intentionally deferred.
@@ -200,7 +170,7 @@ async function main() {
       user: process.env.USERNAME || process.env.USER || process.env.LOGNAME || os.userInfo().username,
       locale: process.env.LANG || '',
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      claudeSettingsDir: path.resolve(__dirname, '..')
+      codexSettingsDir: path.resolve(__dirname, '..')
     };
 
     // Compute base directory for absolute paths (Issue #327: use CWD for subdirectory support)
@@ -227,10 +197,10 @@ async function main() {
       writeEnv(envFile, 'CK_ACTIVE_PLAN', resolved.resolvedBy === 'session' ? resolved.path : '');
       writeEnv(envFile, 'CK_SUGGESTED_PLAN', resolved.resolvedBy === 'branch' ? resolved.path : '');
 
-      // Claude Code Tasks integration - enables multi-session/subagent coordination
+      // Shared task-list integration for multi-session/subagent coordination
       // Task list ID = plan directory name (shared across all sessions working on same plan)
       if (taskListId) {
-        writeEnv(envFile, 'CLAUDE_CODE_TASK_LIST_ID', taskListId);
+        writeEnv(envFile, 'CK_CODEX_TASK_LIST_ID', taskListId);
       }
 
       // Paths - use absolute paths based on CWD for subdirectory workflow support (Issue #327)
@@ -252,7 +222,7 @@ async function main() {
       writeEnv(envFile, 'CK_USER', staticEnv.user);
       writeEnv(envFile, 'CK_LOCALE', staticEnv.locale);
       writeEnv(envFile, 'CK_TIMEZONE', staticEnv.timezone);
-      writeEnv(envFile, 'CK_CLAUDE_SETTINGS_DIR', staticEnv.claudeSettingsDir);
+      writeEnv(envFile, 'CK_CODEX_SETTINGS_DIR', staticEnv.codexSettingsDir);
 
       // Locale config
       if (config.locale?.thinkingLanguage) {
@@ -274,13 +244,6 @@ async function main() {
       writeEnv(envFile, 'CK_CODING_LEVEL', codingLevel);
       writeEnv(envFile, 'CK_CODING_LEVEL_STYLE', getCodingLevelStyleName(codingLevel));
 
-    }
-
-    // Agent Teams detection — detect once, used for env vars and console output
-    const teamInfo = detectAgentTeam();
-    if (envFile && teamInfo) {
-      writeEnv(envFile, 'CK_AGENT_TEAM', teamInfo.teamName);
-      writeEnv(envFile, 'CK_AGENT_TEAM_MEMBERS', teamInfo.memberCount);
     }
 
     console.log(`Session ${source}. ${buildContextOutput(config, detections, resolved, staticEnv.gitRoot)}`);
@@ -320,13 +283,6 @@ async function main() {
           console.log('Review above state from your last session. Continue where you left off or start fresh.');
         }
       }
-    }
-
-    // Agent Teams: Show team context if running inside a team (uses cached result)
-    if (teamInfo) {
-      console.log(`[i] Agent Team detected: "${teamInfo.teamName}" (${teamInfo.memberCount} members)`);
-      console.log(`    Team config: ~/.claude/teams/${teamInfo.teamName}/config.json`);
-      console.log(`    Use the team orchestration skill for parallel coordination templates.`);
     }
 
     // Info: Show git root when running from subdirectory (Issue #327: now supported)

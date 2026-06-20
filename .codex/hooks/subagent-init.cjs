@@ -2,7 +2,7 @@
 /**
  * SubagentStart Hook - Injects context to subagents (Optimized)
  *
- * Fires: When a subagent (Task tool call) is started
+ * Fires: When a subagent spawn starts
  * Purpose: Inject minimal context using env vars from SessionStart
  * Target: ~200 tokens (down from ~350)
  *
@@ -44,8 +44,8 @@ function getAgentContext(agentType, config) {
 
 // Agent types that interact with plan status updates or save plan-scoped reports
 const PLAN_AWARE_AGENTS = new Set([
-  'plan-agent', 'code-simplifier',
-  'innovate-agent', 'code-reviewer', 'execute-agent'
+  'vc-plan-agent', 'vc-code-simplifier',
+  'vc-innovate-agent', 'vc-code-reviewer', 'vc-execute-agent'
 ]);
 
 /**
@@ -121,7 +121,7 @@ async function main() {
     const activePlan = resolved.resolvedBy === 'session' ? resolved.path : '';
     const suggestedPlan = resolved.resolvedBy === 'branch' ? resolved.path : '';
 
-    // Extract task list ID for Claude Code Tasks coordination (shared helper, DRY)
+    // Extract shared task-list context for multi-session/subagent coordination
     const taskListId = extractTaskListId(resolved);
     const plansPath = path.join(baseDir, normalizePath(config.paths?.plans) || 'plans');
     const docsPath = path.join(baseDir, normalizePath(config.paths?.docs) || 'docs');
@@ -201,16 +201,8 @@ async function main() {
       lines.push(agentContext);
     }
 
-    // CRITICAL: SubagentStart requires hookSpecificOutput.additionalContext format
-    const output = {
-      hookSpecificOutput: {
-        hookEventName: "SubagentStart",
-        additionalContext: lines.join('\n')
-      }
-    };
-
-    console.log(JSON.stringify(output));
-    timer.end({ status: 'ok', exit: 0, target: agentType, note: 'context-injected' });
+    console.error(lines.join('\n'));
+    timer.end({ status: 'ok', exit: 0, target: agentType, note: 'context-emitted' });
     process.exit(0);
   } catch (error) {
     console.error(`SubagentStart hook error: ${error.message}`);

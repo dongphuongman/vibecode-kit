@@ -106,7 +106,7 @@ In Phase 2 item 4 (Context File Updates), treat each extracted CONTEXT_PARTIAL f
 
 ### Phase 2: Improvement Generation
 
-**Step 2a: invoke `vc-scout`** — before producing the improvement list, invoke `vc-scout` to map changed source files from the just-completed EXECUTE session to affected context docs. Pass the list of files changed in the EXECUTE phase (from git diff or the execute-agent's self-review). `vc-scout` output tells you which context docs are affected — use this as the starting set for the context audit table required in Phase 2 item 4. This ensures no context doc updates are missed.
+**Step 2a: invoke `vc-scout`** — before producing the improvement list, invoke `vc-scout` to map changed source files from the just-completed EXECUTE session to affected context docs. Pass the list of files changed in the EXECUTE phase (from git diff or the vc-execute-agent's self-review). `vc-scout` output tells you which context docs are affected — use this as the starting set for the context audit table required in Phase 2 item 4. This ensures no context doc updates are missed.
 
 **Step 2b: invoke `vc-sequential-thinking`** — when this session requires updating 3 or more context docs that reference each other (multi-file dependency ordering), invoke `vc-sequential-thinking` before writing any edits. Pass the list of context docs and their cross-references. Use the ordered dependency sequence it produces to determine the correct write order.
 
@@ -349,15 +349,16 @@ For each approved improvement:
   find process/context -type f -name '*.md' | sort
   find process/features -type f -name '*.md' | sort
   ```
-- For each context file affected by the current task, spawn a **dedicated subagent** to handle the update:
+- For each context file affected by the current task, request a **dedicated subagent** handoff for the orchestrator to handle:
   ```
-  Agent: research-agent (or general-purpose for writes)
+  SPAWN_REQUEST: context-update
+  Agent: vc-research-agent (or general-purpose for writes)
   Task: "Update process/context/{file}.md with the following changes from the recent task:
         [specific changes — new patterns, updated commands, corrected info]
         Read process/context/all-context.md first, then read the target file.
         Make targeted edits only, do not restructure unless the user approved context grouping work."
   ```
-- Spawn subagents in **parallel** when multiple context files need updating (independent edits)
+- Request parallel subagents when multiple context files need updating (independent edits), then stop with `NEEDS_CONTEXT` until the root orchestrator returns their summaries.
 - Each subagent focuses on one file — keeps edits scoped and reviewable
 - Before finishing, summarize:
   - which context files changed
@@ -501,7 +502,7 @@ If vc-git-manager has not yet made the source commit: emit BLOCKED — EVL-green
 
 **Step 4-end: present summary** — after completing all approved changes in Phase 4 (context updates written, plan archived, memory entries created), output the completed UPDATE PROCESS summary directly in chat as a markdown block before proceeding to Phase 5.
 
-**Step 4-strategy: invoke `vc-agent-strategy-compare`** — after all context updates are written, check whether any re-research directions were detected during this UPDATE PROCESS session (new unknowns surfaced, gaps found in context, architectural questions left unresolved). If yes: invoke `vc-agent-strategy-compare` to recommend the execution strategy for the next phase's RESEARCH. Present the full 4-option suite (sequential / parallel / workflow / vc-team) with cost estimates. Skip this step if no re-research directions were detected.
+**Step 4-strategy: invoke `vc-agent-strategy-compare`** — after all context updates are written, check whether any re-research directions were detected during this UPDATE PROCESS session (new unknowns surfaced, gaps found in context, architectural questions left unresolved). If yes: invoke `vc-agent-strategy-compare` to recommend the execution strategy for the next phase's RESEARCH. Present the full 4-option suite (sequential / parallel / workflow / coordinated parallel subagents) with cost estimates. Skip this step if no re-research directions were detected.
 
 ---
 
@@ -643,7 +644,7 @@ After producing the complete UPDATE PROCESS phase artifact (phase report written
 - sequential — one agent, one phase after another
 - parallel — multiple subagents, each working a distinct next phase
 - workflow — automated phase-program loop (for programs with 3+ remaining phases)
-- vc-team — multi-agent coordination for deeply interdependent next steps
+- coordinated parallel subagents — parent-managed coordination for deeply interdependent next steps
 
 Present the recommendation (with cost estimates for each option) to the user/orchestrator before handing off.
 
@@ -774,4 +775,4 @@ End every response with the subagent status block:
 
 Full protocol: `process/development-protocols/orchestration.md`
 """
-name = "update-process-agent"
+name = "vc-update-process-agent"

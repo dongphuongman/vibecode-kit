@@ -43,7 +43,7 @@ try {
     process.exit(0);
   }
 
-  // Import formatters (kept local as they're Claude-specific output)
+  // Import formatters (kept local so Codex hook output stays consistent)
   const { formatBlockedError } = require('./scout-block/error-formatter.cjs');
   const { formatBroadPatternError } = require('./scout-block/broad-pattern-detector.cjs');
 

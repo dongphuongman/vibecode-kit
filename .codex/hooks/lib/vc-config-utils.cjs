@@ -1,5 +1,5 @@
 /**
- * Shared utilities for ClaudeKit hooks
+ * Shared utilities for VC Codex hooks
  *
  * Contains config loading, path sanitization, and common constants
  * used by session-init.cjs and dev-rules-reminder.cjs
@@ -10,11 +10,14 @@ const path = require('path');
 const os = require('os');
 const { execFileSync } = require('child_process');
 
-const LOCAL_CONFIG_PATH = '.claude/.vc.json';
-const GLOBAL_CONFIG_PATH = path.join(os.homedir(), '.claude', '.vc.json');
-// Legacy (pre-rename) config paths — read-only backward-compat fallback.
-const LEGACY_LOCAL_CONFIG_PATH = '.claude/.ck.json';
-const LEGACY_GLOBAL_CONFIG_PATH = path.join(os.homedir(), '.claude', '.ck.json');
+const CODEX_HOME = process.env.CODEX_HOME || path.join(os.homedir(), '.codex');
+const LOCAL_CONFIG_PATH = '.codex/.vc.json';
+const GLOBAL_CONFIG_PATH = path.join(CODEX_HOME, '.vc.json');
+// Shared Claude-era config paths are read-only compatibility fallbacks for the VC kit.
+const LEGACY_LOCAL_CONFIG_PATH = '.claude/.vc.json';
+const LEGACY_GLOBAL_CONFIG_PATH = path.join(os.homedir(), '.claude', '.vc.json');
+const LEGACY_CK_LOCAL_CONFIG_PATH = '.claude/.ck.json';
+const LEGACY_CK_GLOBAL_CONFIG_PATH = path.join(os.homedir(), '.claude', '.ck.json');
 const SESSION_STATE_LOCK_TIMEOUT_MS = 500;
 const SESSION_STATE_LOCK_RETRY_MS = 10;
 const SESSION_STATE_LOCK_STALE_MS = 5000;
@@ -30,9 +33,10 @@ const CONFIG_PATH = LOCAL_CONFIG_PATH;
  * @param {string} legacyPath - Legacy (pre-rename) path
  * @returns {string} Effective path to read
  */
-function resolveConfigPath(newPath, legacyPath) {
+function resolveConfigPath(newPath, legacyPath, olderLegacyPath = null) {
   if (fs.existsSync(newPath)) return newPath;
   if (fs.existsSync(legacyPath)) return legacyPath;
+  if (olderLegacyPath && fs.existsSync(olderLegacyPath)) return olderLegacyPath;
   return newPath;
 }
 
@@ -570,8 +574,8 @@ function sanitizeConfig(config, projectRoot) {
  *
  * Resolution order (each layer overrides the previous):
  *   1. DEFAULT_CONFIG (hardcoded defaults)
- *   2. Global config (~/.claude/.vc.json) - user preferences
- *   3. Local config (./.claude/.vc.json) - project-specific overrides
+ *   2. Global config ($CODEX_HOME/.vc.json, then Claude-era fallback) - user preferences
+ *   3. Local config (./.codex/.vc.json, then Claude-era fallback) - project-specific overrides
  *
  * @param {Object} options - Options for config loading
  * @param {boolean} options.includeProject - Include project section (default: true)
@@ -583,8 +587,8 @@ function loadConfig(options = {}) {
   const projectRoot = process.cwd();
 
   // Load configs from both locations (new-first, legacy fallback per slot)
-  const globalConfig = loadConfigFromPath(resolveConfigPath(GLOBAL_CONFIG_PATH, LEGACY_GLOBAL_CONFIG_PATH));
-  const localConfig = loadConfigFromPath(resolveConfigPath(LOCAL_CONFIG_PATH, LEGACY_LOCAL_CONFIG_PATH));
+  const globalConfig = loadConfigFromPath(resolveConfigPath(GLOBAL_CONFIG_PATH, LEGACY_GLOBAL_CONFIG_PATH, LEGACY_CK_GLOBAL_CONFIG_PATH));
+  const localConfig = loadConfigFromPath(resolveConfigPath(LOCAL_CONFIG_PATH, LEGACY_LOCAL_CONFIG_PATH, LEGACY_CK_LOCAL_CONFIG_PATH));
 
   // No config files found - use defaults
   if (!globalConfig && !localConfig) {
@@ -676,7 +680,7 @@ function escapeShellValue(str) {
 }
 
 /**
- * Write environment variable to CLAUDE_ENV_FILE (with escaping)
+ * Write environment variable to the hook env file (with escaping)
  */
 function writeEnv(envFile, key, value) {
   if (envFile && value !== null && value !== undefined) {
@@ -877,7 +881,7 @@ function getGitRoot(cwd = null) {
 }
 
 /**
- * Extract task list ID from plan resolution for Claude Code Tasks coordination
+ * Extract task list ID from plan resolution for shared task-list coordination
  * Only returns ID for session-resolved plans (explicitly active, not branch-suggested)
  *
  * Cross-platform: path.basename() handles both Unix/Windows separators
@@ -912,6 +916,8 @@ module.exports = {
   GLOBAL_CONFIG_PATH,
   LEGACY_LOCAL_CONFIG_PATH,
   LEGACY_GLOBAL_CONFIG_PATH,
+  LEGACY_CK_LOCAL_CONFIG_PATH,
+  LEGACY_CK_GLOBAL_CONFIG_PATH,
   DEFAULT_CONFIG,
   INVALID_FILENAME_CHARS,
   deepMerge,
@@ -943,4 +949,3 @@ module.exports = {
   extractTaskListId,
   isHookEnabled
 };
-

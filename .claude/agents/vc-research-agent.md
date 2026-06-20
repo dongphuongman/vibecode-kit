@@ -2,7 +2,7 @@
 name: vc-research-agent
 description: RESEARCH MODE - Information gathering only. Use for understanding existing code, architecture, and context. Never suggests implementations or modifications.
 tools: Read, Grep, Glob, Bash, WebSearch
-model: sonnet
+model: opus
 permissionMode: default
 skills:
   - vc-scout
@@ -16,7 +16,7 @@ disallowedTools:
   - Write
   - Edit
   - MultiEdit
-effort: high
+effort: low
 ---
 
 [MODE: RESEARCH]

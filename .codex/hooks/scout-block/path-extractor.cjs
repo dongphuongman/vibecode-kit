@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * path-extractor.cjs - Extract paths from Claude Code tool inputs
+ * path-extractor.cjs - Extract paths from Codex tool inputs
  *
  * Extracts file_path, path, pattern params and parses Bash commands
  * to find all path-like arguments.

@@ -1,6 +1,6 @@
 /**
  * Session State Manager - Persist/restore session progress across sessions
- * Storage: always global ~/.claude/session-states/{hash}/ to avoid project dir pollution
+ * Storage: global CODEX_HOME/session-states/{hash}/ to avoid project dir pollution
  * Safety: Zero deps, fail-open, atomic writes, 7-day auto-expire
  * @module session-state-manager
  */
@@ -35,14 +35,30 @@ function execGit(args, cwd) {
   }
 }
 
-/** Resolve state dir: always global ~/.claude/session-states/{hash}/ to avoid project pollution */
-function getStateDir(cwd) {
+function getStateRoot() {
+  return process.env.CODEX_HOME || path.join(os.homedir(), '.codex');
+}
+
+function getLegacyStateRoot() {
+  return path.join(os.homedir(), '.claude');
+}
+
+function getStateDirForRoot(rootDir, cwd, { create = true } = {}) {
   try {
     const hash = crypto.createHash('md5').update(cwd).digest('hex').slice(0, 12);
-    const globalDir = path.join(os.homedir(), '.claude', 'session-states', hash);
-    if (!fs.existsSync(globalDir)) fs.mkdirSync(globalDir, { recursive: true });
+    const globalDir = path.join(rootDir, 'session-states', hash);
+    if (create && !fs.existsSync(globalDir)) fs.mkdirSync(globalDir, { recursive: true });
     return globalDir;
   } catch { return null; }
+}
+
+/** Resolve state dir under CODEX_HOME; legacy Claude state is read-only fallback. */
+function getStateDir(cwd, options = {}) {
+  return getStateDirForRoot(getStateRoot(), cwd, options);
+}
+
+function getLegacyStateDir(cwd) {
+  return getStateDirForRoot(getLegacyStateRoot(), cwd, { create: false });
 }
 
 /** Load previous session state. Returns null if missing or expired (>7 days) */
@@ -51,7 +67,12 @@ function loadState(cwd) {
     const stateDir = getStateDir(cwd);
     if (!stateDir) return null;
     const statePath = path.join(stateDir, STATE_FILENAME);
-    if (!fs.existsSync(statePath)) return null;
+    if (!fs.existsSync(statePath)) {
+      const legacyDir = getLegacyStateDir(cwd);
+      const legacyPath = legacyDir ? path.join(legacyDir, STATE_FILENAME) : null;
+      if (!legacyPath || !fs.existsSync(legacyPath)) return null;
+      return fs.readFileSync(legacyPath, 'utf8');
+    }
     const content = fs.readFileSync(statePath, 'utf8');
     const tsMatch = content.match(/<!-- Generated: (.+?) -->/);
     if (tsMatch) {

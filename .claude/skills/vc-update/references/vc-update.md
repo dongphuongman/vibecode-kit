@@ -154,6 +154,36 @@ Files in the `merge` list are NEVER overwritten if they exist locally. The dry-r
 
 `CLAUDE.md` and `AGENTS.md` are harness-only files — overwritten freely on update like any other managed file. Project-specific content (context groups, tech stack, features) belongs in `process/context/all-context.md`, which vc-update never touches.
 
+**Exception — safe legacy layout migration:** vc-update may migrate old-layout artifacts inside `process/general-plans/` and `process/features/*/` after the harness update completes, but only for safe cases where exactly one destination task folder can be inferred. Ambiguous or shared legacy artifacts are preserved and reported.
+
+### Sequencing — safe-migration runs before legacyDeletions
+
+Safe-migration (SKILL.md Step 10 Part D) **RUNS BEFORE legacyDeletions are applied.** This ordering ensures user report/reference content is moved into task folders *before* the deprecated layout dirs (e.g. `process/general-plans/reports`, `process/_seeds/.../references`) are removed by the manifest's `legacyDeletions` pass. Never delete a deprecated layout dir until Part D has migrated its safe contents — otherwise user content would be lost.
+
+### Orphan detection — 5 target classes
+
+The post-update check (SKILL.md Step 11 Check C) scans for orphaned deprecated layout dirs across **5 classes**:
+
+1. `process/general-plans/reports` and `process/general-plans/references` (general-plans sibling dirs).
+2. `process/features/*/reports` and `process/features/*/references` (feature-scoped sibling dirs).
+3. `process/development-protocols/references` (deprecated protocol references dir).
+4. `process/_seeds/features/_feature-template/reports` and `process/_seeds/features/_feature-template/references` (seed feature-template dirs).
+5. `process/_seeds/general-plans/reports` and `process/_seeds/general-plans/references` (seed general-plans dirs).
+
+It also scans for any flat `*_PLAN_*.md` file living directly in `process/general-plans/active/` or `process/features/*/active/` (not inside a `{slug}_{date}/` subfolder).
+
+For each orphaned dir found, a line is logged to `.vc-orphaned-dirs.log` in the project root:
+
+```
+DATE | DIR_PATH | STATUS: [EMPTY | USER_CONTENT | UNKNOWN]
+```
+
+- `EMPTY` — dir exists but has no files.
+- `USER_CONTENT` — dir contains user files not yet migrated.
+- `UNKNOWN` — could not classify (permission error, symlink, etc.).
+
+A stdout summary follows: `Found N orphaned dirs. See .vc-orphaned-dirs.log for details. Run vc-setup Merge Mode to migrate and cleanup.`
+
 ### Copy-if-missing files (example PRDs)
 
 Files in the `copyIfMissing` list are only installed if they don't already exist locally. This prevents overwriting user-customized planning examples while still providing them on fresh install.
@@ -207,6 +237,14 @@ SYMLINKS:
 Summary: 5 modified, 2 new, 1 removal, 1 merge skipped, 85 unchanged
 ```
 
+When legacy sibling `reports/` / `references/` dirs or flat active plan files are present, append:
+
+```text
+LAYOUT MIGRATION:
+  [safe move]    process/features/auth/reports/auth-audit.md -> process/features/auth/completed/auth-hardening_12-06-26/auth-audit.md
+  [needs review] process/features/auth/references/shared-notes.md
+```
+
 ## Applied Changes Output Format
 
 ```
@@ -222,6 +260,15 @@ Applied:
 Snapshot written to .vc-installed-files
 Version written to .vc-version: 2.1.0
 Temp directory cleaned up.
+```
+
+If safe old-layout artifacts were migrated, append:
+
+```text
+Layout migration:
+  2 legacy artifacts moved into task folders
+  2 empty legacy dirs removed
+  1 legacy artifact left for manual review
 ```
 
 ## Backward Compatibility

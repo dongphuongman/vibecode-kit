@@ -2,6 +2,27 @@
 
 All notable changes to vibecode-pro-max-kit are documented in this file.
 
+## [3.2.0] - 2026-06-20
+
+### Added
+
+- Seed `_GUIDE` templates rewritten for the task-folder structure — deprecated `reports/` and `references/` sibling-dir guidance removed from all 6 seed guides.
+- `vc-setup` Merge Mode: detects an already-installed harness, auto-migrates stale `reports/`/`references/` folders into the task-folder layout, with a conservative pre-create safe-inference fallback and dual-file (`SKILL.md` + `references/`) sync.
+- `vc-update` safe-migration-before-deletion sequencing and 5-class orphan detection with a `.vc-orphaned-dirs.log` audit trail.
+- `legacyDeletions` expanded from 16 to 23 entries (7 new literal stale-dir paths).
+- Autopilot Mode protocol additions and phase-program / plan-lifecycle protocol refinements.
+
+### Changed
+
+- 52 managed files updated across Claude agents, Codex mirror, `vc-setup`/`vc-update`/`vc-autopilot` skills, seed guides, and development protocols.
+
+## [3.1.0] - 2026-06-15
+
+### Added
+
+- Frontmatter-driven keyword routing with a drift-proof generated skills catalog/index — skills are discovered from `trigger_keywords` frontmatter instead of a hand-maintained table.
+- `vc-setup` now delegates context-group authoring to `vc-generate-context` rather than scaffolding groups inline.
+
 ## [3.0.0] - 2026-06-14
 
 ### Breaking Changes

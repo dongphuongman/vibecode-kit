@@ -1,5 +1,9 @@
 # VibeCo Agent Harness Setup - Reference
 
+vc-setup version 3.3.0 — (independent of kit version; see SKILL.md for documentation discipline)
+
+> **CRITICAL — Dual-File Synchronization:** This document and `.claude/skills/vc-setup/SKILL.md` must be edited together. Any change to Merge Mode logic, safe-inference rules, or migration flow MUST appear in both files in the same commit. Dual-file drift creates inconsistent user behavior.
+
 Detailed instructions for each phase of the vc-setup skill, including interactive flows for new and existing projects.
 
 ## Project Classification
@@ -407,13 +411,43 @@ Detect old directory layouts and reorganize them into the harness standard struc
 | Example PRDs at old locations (under `process/context/`, `process/context/planning/`, or `process/development-protocols/references/`) | Move to `.claude/skills/vc-generate-plan/references/`. |
 | process/context/backlog.md | Move to `process/general-plans/backlog/backlog.md` |
 | Flat `*_PLAN_*.md` file directly in `process/general-plans/active/` or `process/features/*/active/` (pre-v3.0.0 layout) | Create a `{slug}_{date}/` task subfolder and move the plan file inside it. Scan the plan for "COMPLETE"/"DONE" markers; if found, create under `completed/{slug}_{date}/` instead. Never overwrite if a task folder with the same name exists — add `-migrated` suffix. |
-| `process/general-plans/reports/`, `process/general-plans/references/`, or `process/features/*/reports/`, `process/features/*/references/` sibling directories | **Not auto-migrated.** List their contents to the user in the LAYOUT CHANGES section and recommend moving files into the nearest task folder manually. Leave in place if the user prefers — they are read-only legacy artifacts and do not break the harness. Do NOT create new `reports/` or `references/` sibling dirs during scaffold. |
+| `process/general-plans/reports/`, `process/general-plans/references/`, or `process/features/*/reports/`, `process/features/*/references/` sibling directories | Auto-migrate every **safe** legacy artifact into the relevant task folder in the same scope. Delete the legacy dir if it becomes empty. Leave only unresolved artifacts behind, list them in LAYOUT CHANGES, and do NOT create new sibling `reports/` or `references/` dirs during scaffold. |
 
 **Migration rules:**
 - Never overwrite existing files at the destination. If a same-name file exists, keep both (rename the migrated copy with a `-migrated` suffix).
 - Print every move action so the user can verify.
 - After all moves, remove empty source directories.
 - If a plan file contains phase patterns (`phase-00-`, `phase-01-`, etc.) and a master plan file exists alongside them, keep them grouped in the same destination directory.
+- **Safe legacy artifact migration contract:** for sibling `reports/` / `references/` dirs, a move is automatic only when exactly one destination task folder can be inferred in the same scope. Safe inference signals are:
+  - the artifact basename starts with one task slug and only one matching `{slug}_{date}/` folder exists
+  - the artifact basename or path contains an exact `{slug}_{date}` token matching one task folder
+  - the scope has exactly one task folder total
+  - exactly one task-folder plan references that legacy artifact path or basename
+- Leave an artifact in place when multiple task folders match, multiple plans reference it, the file is clearly shared across tasks, or no task folder exists yet in that scope.
+- Preserve the original filename when moving unless there is a collision; in that case append `-migrated`.
+- The intended end-state after successful safe migration is that each feature folder and `process/general-plans/` contain only `active/`, `completed/`, and `backlog/`. A remaining legacy `reports/` or `references/` dir means unresolved artifacts still need manual review.
+
+#### Migration Flow (orphaned-dir detection → display → confirm → execute)
+
+This mirrors the Merge Mode auto-migrate flow in `SKILL.md` — same rationale, same rules, same fallback logic. The two docs MUST stay consistent (dual-file synchronization).
+
+1. **Detect** orphaned dirs: scan for `process/reports/`, `process/references/`, and feature-level `process/features/*/reports/`, `process/features/*/references/` sibling dirs (plus pre-v3 `process/plans/`, `process/skills/` leftovers).
+2. **Display** a migration summary table — each row: source path, inferred destination task folder, file count, risk level (safe vs needs-review). Surface under the LAYOUT CHANGES section of PRESENT & ASK.
+3. **Confirm** — one-button confirmation: "Migrate and clean up all stale artifacts". The user approves before any move executes. Never move files silently.
+4. **Execute** — move safe artifacts into the inferred `completed/{slug}_{date}/` (or `active/{slug}_{date}/`) task folder, then delete the now-empty source dir. Print a result summary ("moved X files, deleted Y dirs").
+
+##### Safe-Inference Rules for Pre-Create
+
+- **Safe** — a plan slug exists in `process/general-plans/active/` or `process/features/{feature}/active/` and exactly one matching `{slug}_{date}/` task folder can be inferred → auto-create `completed/{slug}_{date}/` as the destination and migrate the artifact.
+- **NOT safe** — no matching plan slug found, ambiguous filenames, multiple task folders match, or conflict with an existing dir → do NOT create any destination folder; show the fallback message below and pause for manual review.
+
+##### Fallback Display Message
+
+When orphaned dirs are detected but no plan slug can be inferred from project files (no safe inference possible), vc-setup displays:
+
+> "Found orphaned dir [path] but cannot safely infer destination task folder. Manual migration required. See reference docs for migration guide."
+
+vc-setup will NOT auto-create ghost folders (false folders) when inference fails. The user must review and manually place the files. Conservative behavior: when in doubt, leave the artifact in place and surface it — never guess a destination.
 
 **Step 1-6 -- Standard merge (after migration):**
 

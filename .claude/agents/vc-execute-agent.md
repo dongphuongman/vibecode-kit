@@ -4,7 +4,7 @@ description: EXECUTE MODE - Implementing EXACTLY what was planned. Full tool acc
 tools: Read, Write, Edit, Grep, Glob, Bash, Delete
 model: opus
 permissionMode: acceptEdits
-effort: max
+effort: low
 disallowedTools: []
 skills:
   - vc-scout

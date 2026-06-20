@@ -20,7 +20,7 @@ Examples:
 
 - Completed plans (move to `completed/`)
 - Deferred or future work (move to `backlog/`)
-- Research outputs or reports (use `reports/` or `references/`)
+- Reports or references (colocate inside the task folder, not as sibling dirs)
 
 ## Lifecycle
 

@@ -5,7 +5,7 @@ trigger_keywords: update harness, pull kit, sync harness, upgrade agents
 layer: contract
 metadata:
   author: vibecode
-  version: "3.0.0"
+  version: "3.0.1"
 ---
 
 # vc-update
@@ -158,6 +158,15 @@ Summary: 5 modified, 2 new, 1 removal, 1 merge skipped, 45 unchanged
 
 If `staleWarnings` is empty, omit the `STALE WARNINGS` section entirely. If non-empty, print the count and the first 5 entries only — do not dump all paths. Stale warnings indicate vc-namespace paths in your prior snapshot that are not in the kit's known `ownedPaths`. **If you have a custom vc-\* skill at one of those paths, rename it before applying the update** to prevent it from being deleted as a stale kit artifact.
 
+**Also print a LAYOUT MIGRATION section when legacy process artifacts are found:**
+
+- Scan for flat `*_PLAN_*.md` files directly under `process/general-plans/active/` and `process/features/*/active/`.
+- Scan for sibling `process/general-plans/reports/`, `process/general-plans/references/`, and `process/features/*/reports|references/`.
+- Classify each discovered item as either:
+  - `safe move` — exactly one destination task folder can be inferred in the same scope
+  - `needs review` — ambiguous, shared, or no task folder exists yet
+- Print the count of `safe move` items that will be migrated on apply and the count of unresolved `needs review` items that will stay in place.
+
 **Large-delete WARNING:** After computing the dry-run summary, check `toDelete.length`. If it exceeds 20 files OR exceeds 10% of the prior install file count (line count of `.vc-installed-files`), print the following block prominently before asking for confirmation:
 
 ```
@@ -172,7 +181,7 @@ Do not suppress this warning or fold it into the summary line. It must appear as
 
 **STOP HERE.** Tell the user:
 
-> "This is a dry-run summary. Type **apply** to proceed with the update, or **abort** to cancel. The temp clone will be cleaned up either way."
+> "This is a dry-run summary. Type **apply** to proceed with the update and safe layout migration, or **abort** to cancel. The temp clone will be cleaned up either way."
 
 Do NOT proceed until the user explicitly says "apply" (or a clear affirmative like "yes", "go", "do it").
 
@@ -253,7 +262,26 @@ For each entry in `symlinks`:
 - If a wrong symlink exists: `rm` it first.
 - Create the symlink: `ln -s {target} {path}`
 
-**Part D — Clean up**:
+**Part D — Safe legacy layout migration**:
+
+> **Sequencing — safe-migration (Part D) RUNS BEFORE legacyDeletions are applied.** This ordering ensures user report/reference content is moved into task folders *before* the deprecated layout dirs (e.g. `process/general-plans/reports`, `process/_seeds/.../references`) are removed by the manifest's `legacyDeletions` pass. Never delete a deprecated layout dir until Part D has migrated its safe contents — otherwise user content would be lost.
+
+After the harness files and symlinks are updated, migrate safe old-layout process artifacts into task folders:
+
+- Scope:
+  - flat `*_PLAN_*.md` files directly under `process/general-plans/active/` and `process/features/*/active/`
+  - sibling `process/general-plans/reports/`, `process/general-plans/references/`
+  - sibling `process/features/*/reports/`, `process/features/*/references/`
+- Safe inference rules: migrate automatically only when exactly one destination task folder can be inferred in the same scope by one of:
+  - basename starts with one task slug and only one matching `{slug}_{date}/` folder exists
+  - basename or path contains an exact `{slug}_{date}` token matching one task folder
+  - there is exactly one task folder total in that scope
+  - exactly one task-folder plan references the legacy artifact path or basename
+- Unsafe cases: leave in place and report when multiple candidates match, multiple plans reference the artifact, the file is clearly shared across tasks, or no task folder exists yet in that scope.
+- Destination filename: preserve the original filename unless a same-name file already exists, then append `-migrated`.
+- Cleanup: after all safe migrations, delete any now-empty legacy sibling `reports/` or `references/` dir. The target end-state is that each feature folder and `process/general-plans/` keep only `active/`, `completed/`, and `backlog/` unless unresolved legacy artifacts remain.
+
+**Part E — Clean up**:
 
 ```bash
 rm -rf "$VC_UPDATE_TMPDIR"
@@ -278,6 +306,15 @@ Applied:
 
 Snapshot written to .vc-installed-files
 Version written to .vc-version: {remoteVersion}
+```
+
+If safe legacy artifacts were migrated, append lines such as:
+
+```
+Layout migration:
+  4 legacy artifacts moved into task folders
+  3 empty legacy dirs removed
+  2 legacy artifacts left for manual review
 ```
 
 **After printing the summary, run three post-update checks and print a NOTICE block:**
@@ -319,25 +356,44 @@ or diff .claude/settings.json .vibecode-backup/.claude/settings.json
 
 If `.claude/settings.json` was NOT in `toPreserve` (it was freshly written), skip this notice.
 
-**Check C — old-layout process/ folders:**
+**Check C — orphaned old-layout / seed-template dirs (5 target classes):**
 
-Scan for these two signals of pre-v3.0.0 plan layout:
+Scan for orphaned deprecated layout dirs across these **5 classes**:
 
-1. Any `*.md` file matching `*_PLAN_*.md` that lives **directly** in `process/general-plans/active/` or `process/features/*/active/` (flat file, not inside a `{slug}_{date}/` subfolder).
-2. Any `reports/` or `references/` directory that is a **sibling** of `active/`/`completed/`/`backlog/` under `process/general-plans/` or `process/features/*/`.
+1. `process/general-plans/reports` and `process/general-plans/references` (general-plans sibling dirs).
+2. `process/features/*/reports` and `process/features/*/references` (feature-scoped sibling dirs).
+3. `process/development-protocols/references` (deprecated protocol references dir).
+4. `process/_seeds/features/_feature-template/reports` and `process/_seeds/features/_feature-template/references` (seed feature-template dirs).
+5. `process/_seeds/general-plans/reports` and `process/_seeds/general-plans/references` (seed general-plans dirs).
 
-If either signal is found, print:
+Also scan for any flat `*_PLAN_*.md` file living **directly** in `process/general-plans/active/` or `process/features/*/active/` (not inside a `{slug}_{date}/` subfolder).
+
+For each orphaned dir found, log a line to `.vc-orphaned-dirs.log` in the project root:
 
 ```
-NOTICE: Old-layout process/ folders detected. v3.0.0 uses task-folder convention
-(active/{slug}_{date}/{slug}_PLAN_{date}.md). Your existing plans still work as
-read-only legacy artifacts, but new plans should use the task-folder layout.
-
-To migrate automatically: run vc-setup (Flow B / Merge mode detects and migrates
-old layouts with your approval before touching anything).
+DATE | DIR_PATH | STATUS: [EMPTY | USER_CONTENT | UNKNOWN]
 ```
 
-If no old-layout signals are found, print nothing for Check C.
+- `EMPTY` — dir exists but has no files.
+- `USER_CONTENT` — dir contains user files not yet migrated.
+- `UNKNOWN` — could not classify (permission error, symlink, etc.).
+
+After logging, print a stdout summary:
+
+```
+Found N orphaned dirs. See .vc-orphaned-dirs.log for details. Run vc-setup Merge Mode to migrate and cleanup.
+```
+
+If any orphaned dir or flat-plan signal is found after the safe migration pass, also print:
+
+```
+NOTICE: Some old-layout process/ artifacts could not be migrated safely.
+The safe cases were already moved into task folders. Review the remaining
+legacy paths manually — they are ambiguous, shared, or missing a clear task
+folder destination.
+```
+
+If no orphaned dirs and no flat-plan signals are found, print nothing for Check C (no `.vc-orphaned-dirs.log` line written).
 
 **Recommended: run validators**
 
@@ -357,7 +413,7 @@ Recommended next step — run the five core validators:
 
 - `VC_KIT_SOURCE`: when set, overrides the remote URL for cloning. Used verbatim as the `git clone` source argument. No validation. Enables local testing and forks.
 - `process/_seeds/` is a legacy optional scaffold surface. If a remote release still includes it, treat it as managed reference and overwrite it entirely on update. Its absence in the live repo is valid.
-- Real working files outside `_seeds/` (`process/context/`, `process/features/`, `process/general-plans/`) are **NEVER** touched by vc-update.
+- Real working files outside `_seeds/` are preserved by default. The only allowed `process/` mutations inside vc-update are the safe old-layout migrations described in Step 8 / Step 10 Part D for `process/general-plans/` and `process/features/*/`.
 - Always show the dry-run diff before applying. Never apply without user confirmation.
 - Clean up the temp clone directory even on error or abort.
 - If `.vc-version` is missing, treat as version `0.0.0` (first update, apply everything).

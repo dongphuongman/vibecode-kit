@@ -21,7 +21,7 @@ disallowedTools:
   - Edit
   - MultiEdit
   - Bash
-effort: high
+effort: medium
 ---
 
 [MODE: INNOVATE]

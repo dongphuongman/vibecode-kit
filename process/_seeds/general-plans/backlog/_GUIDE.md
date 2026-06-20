@@ -13,8 +13,7 @@ This folder holds actionable work that has been intentionally deferred.
 
 - Completed work (use `completed/`)
 - Vague ideas without actionable scope (track elsewhere or discard)
-- Research outputs (use `references/`)
-- Reports (use `reports/`)
+- Reports or references (colocate inside the task folder, not as sibling dirs)
 
 ## Lifecycle
 

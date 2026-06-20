@@ -13,8 +13,6 @@ process/
     active/                -- in-progress plans (each plan lives inside a {slug}_{date}/ task folder)
     completed/             -- archived completed plans
     backlog/               -- deferred/future plans
-    reports/               -- (deprecated — read-only legacy; do NOT create for new projects)
-    references/            -- (deprecated — read-only legacy; do NOT create for new projects)
 
 ## Key Conventions
 

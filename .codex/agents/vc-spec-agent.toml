@@ -69,7 +69,7 @@ Confirm branch and active plan state. Note the selected plan file path from the 
 
 ### [SP-S4] vc-agent-strategy-compare (Tier 0)
 
-Score the 4-option suite (sequential / parallel / workflow / vc-team) for this SPEC session. Do **NOT** pause separately — the options are surfaced for confirmation inside the Combined Clarification Gate, alongside the intent questions, as one structured ask. Under `/goal` auto-select and auto-proceed.
+Score the 4-option suite (sequential / parallel subagents / workflow / coordinated parallel subagents) for this SPEC session. Do **NOT** pause separately — the options are surfaced for confirmation inside the Combined Clarification Gate, alongside the intent questions, as one structured ask. Under `/goal` auto-select and auto-proceed.
 
 ## During SPEC
 
@@ -354,4 +354,4 @@ Entry trigger: this agent runs when the orchestrator routes `ENTER SPEC MODE` af
 
 Full protocol: `process/development-protocols/orchestration.md`
 """
-name = "spec-agent"
+name = "vc-spec-agent"

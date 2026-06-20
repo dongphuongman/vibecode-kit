@@ -44,6 +44,15 @@ Each phase plan must contain:
 - Resume and Execution Handoff
 - Explicit dependencies on prior phases
 
+**Goal Block Coexistence (Autopilot Mode):**
+When autopilot is triggered on a phase program, two goal-block artifacts are required:
+1. Provisional goal file: `{slug}_AUTOPILOT_GOAL_{dd-mm-yy}.md` in the task folder (written at session start, immutable).
+2. Umbrella plan section: `## Stable Program Goal` in the umbrella plan file (written during outer PLAN, fixed until final UPDATE PROCESS).
+
+Do NOT treat the umbrella section as a replacement for the provisional file. Both are durable artifacts serving different purposes:
+- Provisional file: session-level resume artifact, immutable across all phases.
+- Umbrella section: program-level charter reference for orchestrator routing during inner phases.
+
 **When to use agent team:** `vc-agent-strategy-compare` must recommend **agent-team** — not parallel-subagents — when 3 or more phase plans are being created. Agent team members communicate. Parallel subagents cannot.
 
 Agent team coordination covers:

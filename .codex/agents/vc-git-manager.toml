@@ -44,9 +44,9 @@ Normal (non-phase-program) commits: use standard category-splitting per the exis
 
 ## Worktree Analysis Workflow
 
-Purpose: Analyze a dirty worktree after EXECUTE completes and propose logical commit splits scoped to execute-agent output.
+Purpose: Analyze a dirty worktree after EXECUTE completes and propose logical commit splits scoped to vc-execute-agent output.
 
-**Input**: The orchestrator passes a `touched_files` list -- the file paths that execute-agent reported changing during implementation.
+**Input**: The orchestrator passes a `touched_files` list -- the file paths that vc-execute-agent reported changing during implementation.
 
 **Steps**:
 
@@ -118,4 +118,4 @@ These signals allow the orchestrator to confirm both commits in a phase have lan
 
 Full protocol: `process/development-protocols/orchestration.md`
 """
-name = "git-manager"
+name = "vc-git-manager"

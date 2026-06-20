@@ -194,6 +194,11 @@ Legacy paths (deprecated for new writes; existing content is read-only):
 - `process/features/{feature}/reports/` — legacy feature reports
 - `process/features/{feature}/references/` — legacy feature references
 
+Migration expectation:
+- `vc-setup` and `vc-update` should migrate safe legacy `reports/` / `references/` artifacts into the relevant task folder when exactly one destination task folder can be inferred in the same scope.
+- After safe migration, remove the emptied legacy sibling dir so the target steady-state is `active/`, `completed/`, and `backlog/` only.
+- Leave ambiguous, shared, or unowned legacy artifacts in place and surface them for manual review rather than forcing a risky move.
+
 ## Backlog
 
 - Cross-cutting deferred work belongs in `process/general-plans/backlog/`.

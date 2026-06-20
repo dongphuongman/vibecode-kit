@@ -17,18 +17,11 @@ try {
 - Prefer kebab-case for JS/TS/Python/shell (.js, .ts, .py, .sh) with descriptive names
 - Respect language conventions: C#/Java/Kotlin/Swift use PascalCase (.cs, .java, .kt, .swift), Go/Rust use snake_case (.go, .rs)
 - Other languages: follow their ecosystem's standard naming convention
-- Goal: self-documenting names for LLM tools (Grep, Glob, Search)`
+- Goal: self-documenting names for Codex file edits`
 
-  console.log(JSON.stringify({
-    "hookSpecificOutput": {
-      "hookEventName": "PreToolUse",
-      "permissionDecision": "allow",
-      "additionalContext": injectedPrompt
-    }
-  }));
+  console.error(injectedPrompt);
 
     timer.end({ status: 'ok', exit: 0 });
-    // All paths allowed
     process.exit(0);
 
   } catch (error) {

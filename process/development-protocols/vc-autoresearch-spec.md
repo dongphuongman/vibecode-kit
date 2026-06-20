@@ -106,6 +106,30 @@ Both use the same loop shape. The only difference is what "done" means.
 
 ---
 
+## Goal Block Integration During Loops
+
+When vc-autoresearch runs a plan-validate-fix or execute-validate-fix loop in an autopilot session:
+
+1. **Check for goal file:** Before loop starts, check if `{slug}_AUTOPILOT_GOAL_*.md` exists in task folder.
+
+2. **If goal file exists (autopilot run active):**
+   - Read the goal block's `DECISION POLICY` field (the policy for gap handling).
+   - Emit per-cycle iteration reports: `{plan-slug}-{domain}-iteration-{NNN}_REPORT_{dd-mm-yy}.md`
+     - Domain: `pvl` for plan-validate-fix, `evl` for execute-validate-fix
+     - NNN: 3-digit cycle counter (001, 002, ..., 010)
+   - Each iteration report includes:
+     - Cycle number
+     - Gap count (before/after)
+     - Plan sections modified
+     - Test gate pass/fail summary
+     - Policy decision applied (auto-supplement, accept CONDITIONAL, etc.)
+   - At final cycle (10 or success): append `## Autoresearch Loop Summary [YYYY-MM-DD]` to the goal block file with: cycle count, final verdict, known-gaps accepted.
+
+3. **If goal file does NOT exist (non-autopilot run):**
+   - Continue loop as-is. No goal block interaction.
+
+---
+
 ## What the skill owns vs what stays in the phase agents
 
 **vc-autoresearch owns:**

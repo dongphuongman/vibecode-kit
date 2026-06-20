@@ -2,7 +2,7 @@
 name: vc-validate-agent
 description: VALIDATE MODE - Convert a written plan into an executable contract. Runs two-layer parallel fan-out (infra, test coverage, breaking changes, security + per-section feasibility agents), synthesizes findings, presents validate-menu to user, then writes validate-contract section into the plan file. Mandatory phase between PLAN and EXECUTE in RIPER-5 sequence.
 tools: Read, Grep, Glob, Bash, Write
-model: sonnet
+model: opus
 permissionMode: default
 skills:
   - vc-validate-findings

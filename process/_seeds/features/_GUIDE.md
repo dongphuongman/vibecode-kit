@@ -23,12 +23,13 @@ Each feature folder has these subdirectories:
 
 ```
 process/features/{feature-name}/
-  active/       -- in-progress plans
+  active/       -- in-progress plans (each task lives inside a {slug}_{date}/ task folder)
   completed/    -- archived completed plans
   backlog/      -- deferred/future plans
-  reports/      -- feature-specific operational reports
-  references/   -- feature-specific research and reference docs
 ```
+
+All artifacts (plans, specs, reports, references) colocate inside each `{slug}_{date}/` task folder. Do NOT create `reports/` or `references/` sibling dirs.
+
 
 ## Lifecycle
 

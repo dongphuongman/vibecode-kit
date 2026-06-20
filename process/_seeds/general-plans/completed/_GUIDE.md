@@ -21,4 +21,4 @@ Move a plan here when:
 
 - Plans still being tested (keep in `active/`)
 - Plans that were abandoned (move to `backlog/` with a note, or delete)
-- Reports about the implementation (use `reports/`)
+- Reports about the implementation (colocate inside the task folder, not as a sibling dir)

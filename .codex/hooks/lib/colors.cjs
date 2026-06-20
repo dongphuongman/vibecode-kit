@@ -45,11 +45,11 @@ const COLOR_CODES = {
 };
 
 // Detect color support at module load (cached)
-// Claude Code statusline runs via pipe but output displays in TTY - default to true
+// Codex statusline runs via pipe but output displays in TTY - default to true
 const shouldUseColor = (() => {
   if (process.env.NO_COLOR) return false;
   if (process.env.FORCE_COLOR) return true;
-  // Default true for statusline context (Claude Code handles TTY display)
+  // Default true for statusline context (Codex handles TTY display)
   return true;
 })();
 

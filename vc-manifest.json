@@ -1,5 +1,5 @@
 {
-  "version": "3.1.0",
+  "version": "3.2.0",
   "include": [
     ".claude/agents/**",
     ".claude/skills/**",
@@ -22,7 +22,6 @@
     "process/general-plans/**",
     "**/.git/**",
     "**/.logs/**",
-
     "**/node_modules/**",
     "**/screenshots/**",
     "**/.browser-session.json",
@@ -53,7 +52,6 @@
     "README-preview*.html",
     "CONTRIBUTING.md",
     "SECURITY.md",
-
     "LICENSE",
     "docs/**",
     "assets/**",

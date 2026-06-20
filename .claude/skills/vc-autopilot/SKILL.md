@@ -79,7 +79,7 @@ When VALIDATE V7 completes during an autopilot run, the orchestrator:
 4. Replaces `TEST GATES: TBD — populated after VALIDATE` with the actual gate commands.
 5. Updates `START:` to reflect post-VALIDATE state.
 6. Prints the updated block to chat.
-7. Overwrites the disk artifact at the same path.
+7. Appends an `## (UPDATE) [YYYY-MM-DD]` section to the disk file (never overwrites the original).
 
 ---
 

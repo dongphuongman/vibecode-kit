@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
- * PostToolUse hook: Tracks file modifications and reminds to run code-simplifier
+ * PostToolUse hook: Tracks file modifications and reminds to run vc-code-simplifier
  *
- * This hook fires after Edit/Write/MultiEdit operations and:
+ * This hook fires after Codex file-edit operations and:
  * 1. Tracks modified files in the session
- * 2. After significant edits, injects a reminder to run code-simplifier
+ * 2. After significant edits, injects a reminder to run vc-code-simplifier
  *
  * Auto-trigger behavior:
  * - Tracks edit count per session
- * - After 5+ file edits, reminds about code-simplifier
+ * - After 5+ file edits, reminds about vc-code-simplifier
  * - Resets counter when simplifier is mentioned in conversation
  */
 
@@ -91,10 +91,9 @@ function main() {
     const toolInput = hookData.tool_input || {};
 
     // Only track edit operations
-    const editTools = ['Edit', 'Write', 'MultiEdit'];
+    const editTools = ['apply_patch', 'Edit', 'Write'];
     if (!editTools.includes(toolName)) {
       timer.end({ tool: toolName, status: 'skip', exit: 0, note: 'non-edit-tool' });
-      console.log(JSON.stringify({ continue: true }));
       return;
     }
 
@@ -112,42 +111,32 @@ function main() {
       session.modifiedFiles.push(filePath);
     }
 
-    // Check if we should remind about code-simplifier
+    // Check if we should remind about vc-code-simplifier
     const shouldRemind =
       session.editCount >= EDIT_THRESHOLD &&
       !session.simplifierRun &&
       (Date.now() - session.lastReminder > 10 * 60 * 1000); // Don't remind more than every 10 min
 
-    let additionalContext = '';
+    let reminder = '';
     if (shouldRemind) {
       session.lastReminder = Date.now();
-      additionalContext = `\n\n[Code Simplification Reminder] You have modified ${session.modifiedFiles.length} files in this session. Consider using the \`code-simplifier\` agent to refine recent changes before proceeding to code review. This is a recommended quality pass, not an automatic mandatory gate.`;
+      reminder = `[Code Simplification Reminder] You have modified ${session.modifiedFiles.length} files in this session. Consider using the \`vc-code-simplifier\` agent to refine recent changes before proceeding to code review. This is a recommended quality pass, not an automatic mandatory gate.`;
+      console.error(reminder);
     }
 
     // Save updated session data
     saveSessionData(session);
 
-    // Output hook result
-    const result = {
-      continue: true
-    };
-
-    if (additionalContext) {
-      result.additionalContext = additionalContext;
-    }
-
     timer.end({
       tool: toolName,
       status: 'ok',
       exit: 0,
-      note: additionalContext ? 'reminder-injected' : 'tracked-edit'
+      note: reminder ? 'reminder-emitted' : 'tracked-edit'
     });
-    console.log(JSON.stringify(result));
 
   } catch (e) {
     // On error, allow the operation to continue
     logHookCrash('post-edit-simplify-reminder', e, { event: 'PostToolUse' });
-    console.log(JSON.stringify({ continue: true }));
   }
   }
 

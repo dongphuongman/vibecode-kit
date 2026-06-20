@@ -52,7 +52,7 @@ Invoke `vc-scout` as the first codebase scanning step before using grep/glob dir
 
 **Phase-end — strategy compare:**
 
-After producing RESEARCH findings, invoke `vc-agent-strategy-compare` to evaluate the 4 execution strategies (sequential / parallel / workflow / vc-team) for the upcoming INNOVATE phase. Present the recommendation with cost estimates before proceeding.
+After producing RESEARCH findings, invoke `vc-agent-strategy-compare` to evaluate the 4 execution strategies (sequential / parallel / workflow / coordinated parallel subagents) for the upcoming INNOVATE phase. Present the recommendation with cost estimates before proceeding.
 
 ### [INNOVATE]
 
@@ -82,7 +82,7 @@ After producing RESEARCH findings, invoke `vc-agent-strategy-compare` to evaluat
 
 **Phase-end — strategy compare:**
 
-After producing the approach decision, invoke `vc-agent-strategy-compare` to evaluate the 4 execution strategies (sequential / parallel / workflow / vc-team) for the upcoming PLAN phase. Present the recommendation with cost estimates before proceeding.
+After producing the approach decision, invoke `vc-agent-strategy-compare` to evaluate the 4 execution strategies (sequential / parallel / workflow / coordinated parallel subagents) for the upcoming PLAN phase. Present the recommendation with cost estimates before proceeding.
 
 ### [PLAN]
 
@@ -98,7 +98,7 @@ After producing the approach decision, invoke `vc-agent-strategy-compare` to eva
 6. For large multi-phase efforts, be recommendation-first: recommend whether this should stay a normal complex plan or become a phase program, name the proposed feature folder and phase sequence, and stop for approval before pretending FAST mode can execute the whole program.
 7. Reference `process/development-protocols/phase-programs.md` for true phase programs and do not collapse them into one giant FAST execution pass.
 
-**3+ phase program — agent-team required:** When research/innovate indicates 3+ phase plans are needed, `vc-agent-strategy-compare` MUST recommend **agent-team** (not parallel-subagents or sequential) per the Phase Program Exception — agent team members must communicate to coordinate blast-radius non-overlap and dependency declarations across phases. Fast-mode CANNOT compress a 3+ phase program into one pass — it must stop after making the phase-program recommendation and route to normal PLAN mode.
+**3+ phase program — explicit coordination required:** When research/innovate indicates 3+ phase plans are needed, `vc-agent-strategy-compare` MUST recommend **coordinated parallel subagents** rather than uncoordinated fan-out or sequential work. The parent orchestrator must coordinate blast-radius non-overlap and dependency declarations across phases. Fast-mode CANNOT compress a 3+ phase program into one pass — it must stop after making the phase-program recommendation and route to normal PLAN mode.
 
 **Phase insertion:** When identifying that a new phase must be inserted between existing phases mid-program: follow the Phase Insertion Renumbering protocol (behavior-reference Section 8) — update ## Phase Ordering in all plans, re-annotate registry entries, re-number Context Envelope phase fields, and emit PHASE_RENUMBERED signals. Coordinate blast-radius claims via the registry token protocol before writing new phase entries.
 8. **For the 2-3 highest-risk checklist items:** invoke `vc-scenario` to generate edge cases across the risk dimensions for those items. Incorporate findings into the checklist and plan mitigations.
@@ -110,11 +110,11 @@ After producing the approach decision, invoke `vc-agent-strategy-compare` to eva
 
 **Phase-end — strategy compare:**
 
-After producing the plan artifact, invoke `vc-agent-strategy-compare` to evaluate the 4 execution strategies (sequential / parallel / workflow / vc-team) for the upcoming VALIDATE phase. Present the recommendation with cost estimates before proceeding.
+After producing the plan artifact, invoke `vc-agent-strategy-compare` to evaluate the 4 execution strategies (sequential / parallel / workflow / coordinated parallel subagents) for the upcoming VALIDATE phase. Present the recommendation with cost estimates before proceeding.
 
 ### [VALIDATE]
 
-**Phase program validation:** For phase programs requiring agent-team validation, fast-mode delegates the full V1–V7 sequence to vc-validate-agent (not inline simulation). The agent-team validation strategy applies to the outer PVL — fast-mode skips its inline steps 2-7 as per the high-risk full delegation rule.
+**Phase program validation:** For phase programs requiring coordinated multi-agent validation, fast-mode delegates the full V1–V7 sequence to `vc-validate-agent` instead of inline simulation. The coordinated validation strategy applies to the outer PVL — fast-mode skips its inline steps 2-7 as per the high-risk full delegation rule.
 
 After PLAN, run the VALIDATE sequence inline before pausing:
 
@@ -152,7 +152,7 @@ gate verdicts, and BLOCKED escalation path. Full V1–V7 sequence: invoke `vc-va
 
 **Phase-end — strategy compare:**
 
-After the validate-contract is written, invoke `vc-agent-strategy-compare` to evaluate the 4 execution strategies (sequential / parallel / workflow / vc-team) for the upcoming EXECUTE phase. Present the recommendation with cost estimates before the mandatory pause.
+After the validate-contract is written, invoke `vc-agent-strategy-compare` to evaluate the 4 execution strategies (sequential / parallel / workflow / coordinated parallel subagents) for the upcoming EXECUTE phase. Present the recommendation with cost estimates before the mandatory pause.
 
 ### **MANDATORY PAUSE (after VALIDATE)**
 
@@ -436,5 +436,5 @@ End every response with the subagent status block:
 
 Full protocol: `process/development-protocols/orchestration.md`
 """
-name = "fast-mode-agent"
+name = "vc-fast-mode-agent"
 sandbox_mode = "workspace-write"
