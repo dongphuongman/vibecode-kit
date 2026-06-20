@@ -339,9 +339,29 @@ done <<< "$SYMLINKS_JSON"
 if [ -n "$LEGACY_DELETIONS" ]; then
   echo "  Removing deprecated paths (legacyDeletions)..."
   DELETED_DIRS=()
+  DEFERRED_LAYOUT=()
   while IFS= read -r legacy_path; do
     [ -z "$legacy_path" ] && continue
     if [ -d "$legacy_path" ]; then
+      # ── Content-safety guard ──────────────────────────────────────────────
+      # install.sh is deterministic (no agent) and cannot run the adaptive
+      # safe-migration that vc-update Part D performs. A process-layout content
+      # dir (reports/ or references/ under process/) may hold real user files
+      # (plans, reports, references). NEVER rm -rf such a dir when it is
+      # non-empty — defer it to vc-update, which migrates the contents into
+      # task folders BEFORE removing the empty dir. Deprecated harness dirs
+      # (e.g. .claude/skills/vc-*) carry no user content and are still removed.
+      base=$(basename "$legacy_path")
+      case "$legacy_path" in
+        process/*)
+          if { [ "$base" = "reports" ] || [ "$base" = "references" ]; } \
+             && [ -n "$(find "$legacy_path" -type f -print -quit 2>/dev/null)" ]; then
+            echo "    deferred (has content — vc-update will migrate then remove): $legacy_path"
+            DEFERRED_LAYOUT+=("$legacy_path")
+            continue
+          fi
+          ;;
+      esac
       rm -rf "$legacy_path"
       echo "    removed dir: $legacy_path"
       DELETED_DIRS+=("$legacy_path")
@@ -359,6 +379,9 @@ if [ -n "$LEGACY_DELETIONS" ]; then
       [ -d "$parent" ] && rmdir "$parent" 2>/dev/null || true
     done
   done
+  if [ "${#DEFERRED_LAYOUT[@]}" -gt 0 ]; then
+    echo "  ${#DEFERRED_LAYOUT[@]} legacy content dir(s) preserved (have files) — run vc-update to migrate them into task folders."
+  fi
 fi
 
 # ══════════════════════════════════════════════════════

@@ -2,6 +2,12 @@
 
 All notable changes to vibecode-pro-max-kit are documented in this file.
 
+## [3.2.4] - 2026-06-20
+
+### Fixed
+
+- **Data-loss fix in `install.sh`:** the legacyDeletions pass `rm -rf`'d every listed directory unconditionally, including process-layout content dirs (`process/general-plans/reports`, `process/general-plans/references`, and the `_seeds` equivalents). Because `install.sh` is deterministic (no agent) it cannot run the adaptive safe-migration that `vc-update` Part D performs — so on the documented `curl install.sh | bash` upgrade path, a project with real reports/references content under those dirs would have that content **permanently destroyed** before `vc-update` ever ran. `install.sh` now guards process-layout content dirs: any non-empty `reports/` or `references/` directory under `process/` is **deferred** (preserved, not deleted) with a notice to run `vc-update`, which migrates the contents into task folders before removing the now-empty dir. Deprecated harness dirs (e.g. `.claude/skills/vc-*`) and dead files carry no user content and are still removed. Verified against a real v2.4.1 project: 15 real report/reference files preserved, 0 user-content loss, deprecated harness still cleaned up.
+
 ## [3.2.3] - 2026-06-20
 
 ### Fixed

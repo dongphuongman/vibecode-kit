@@ -88,7 +88,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/github/license/withkynam/vibecode-pro-max-kit" alt="License"></a>
   <a href="https://github.com/withkynam/vibecode-pro-max-kit/graphs/contributors"><img src="https://img.shields.io/github/contributors/withkynam/vibecode-pro-max-kit" alt="Contributors"></a>
   <a href="https://github.com/withkynam/vibecode-pro-max-kit/actions/workflows/validate.yml"><img src="https://img.shields.io/github/actions/workflow/status/withkynam/vibecode-pro-max-kit/validate.yml" alt="CI"></a>
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-3.2.3-2EA043" alt="Version"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-3.2.4-2EA043" alt="Version"></a>
   <img src="https://img.shields.io/badge/agents-15-orange" alt="Agents">
   <img src="https://img.shields.io/badge/skills-33-purple" alt="Skills">
   <img src="https://img.shields.io/badge/hooks-10-blue" alt="Hooks">
